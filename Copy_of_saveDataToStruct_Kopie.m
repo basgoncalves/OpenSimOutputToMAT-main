@@ -1,20 +1,20 @@
 %%
 clc; clear;
 addpath 'C:\Users\Balu\Nextcloud\Documents\MA\Code'
-% activate_msk_modelling
+activate_msk_modelling
 outputPath = 'C:\Users\Balu\Nextcloud\Documents\MA\Daten\P04\post\output automization';
 modelList = GetSubDirsFirstLevelOnly(outputPath);
 
 
 ErrorScores = zeros(4,1);
-%% 
+%%
 for p = 1 : numel(modelList)
     disp(' ');
     probandFolder = [outputPath filesep modelList{p}];
     trialList = GetSubDirsFirstLevelOnly(probandFolder);
     for trialNr = 1 : numel(trialList)
         disp(['currently processing:' ' ' modelList{p} ' ' '|' ' ' trialList{trialNr}]);
-        
+
         currentFolder = [probandFolder filesep trialList{trialNr}];
 
         clear preframes EMG EMGChannels ratioEmgToFrames emgFrequency;
@@ -35,7 +35,7 @@ for p = 1 : numel(modelList)
             end
         end
         if cycleIsSorted
-            
+
             ikFile = fullfile(currentFolder, 'Output', 'IK', 'IK.mot');
             if isfile(ikFile)
                 %crop data from left and right leg to stance phase
@@ -46,37 +46,46 @@ for p = 1 : numel(modelList)
                 tempStructRight = struct;
                 if tempData.time(1) >0
                     beginning_recording_new = round(tempData.time(1)/(1/frequency));
+                    preframes = preframes - (beginning_recording_new-1);
+                    if isfield(cycle, 'left') && isfield(cycle, 'right')
+                        cycle.left.start = cycle.left.start - (beginning_recording_new-1);
+                        cycle.left.end = cycle.left.end - (beginning_recording_new-1);
+                        cycle.left.footOff = cycle.left.footOff - (beginning_recording_new-1);
+                        cycle.right.start = cycle.right.start - (beginning_recording_new-1);
+                        cycle.right.end = cycle.right.end - (beginning_recording_new-1);
+                        cycle.right.footOff = cycle.right.footOff - (beginning_recording_new-1);
+                    elseif isfield(cycle, 'left')
+                        cycle.left.start = cycle.left.start - (beginning_recording_new-1);
+                        cycle.left.end = cycle.left.end - (beginning_recording_new-1);
+                        cycle.left.footOff = cycle.left.footOff - (beginning_recording_new-1);
+                    else
+                        cycle.right.start = cycle.right.start (beginning_recording_new-1);
+                        cycle.right.end = cycle.right.end - (beginning_recording_new-1);
+                        cycle.right.footOff = cycle.right.footOff - (beginning_recording_new-1);
+                    end
                 end
+
                 if isfield(cycle, 'left') && isfield(cycle, 'right')
-                    cycle.left.start = cycle.left.start - (beginning_recording_new-1);
-                    cycle.right.start = cycle.right.start - (beginning_recording_new-1);
+                    frameZero = min(min(cycle.left.start), min(cycle.right.start)) - 1;
                 elseif isfield(cycle, 'left')
-                    cycle.left.start = cycle.left.start - (beginning_recording_new-1);
+                    frameZero = min(cycle.left.start) - 1;
                 else
-                    cycle.right.start = cycle.right.start (beginning_recording_new-1);
+                    frameZero = min(cycle.right.start) - 1;
                 end
-                
-                if isfield(cycle, 'left') && isfield(cycle, 'right')
-                    frameZero = min(min(cycle.left.start), min(cycle.right.start)) - 1 - (beginning_recording_new-1);
-                elseif isfield(cycle, 'left')
-                    frameZero = min(cycle.left.start) - 1- (beginning_recording_new-1);
-                else
-                    frameZero = min(cycle.right.start) - 1- (beginning_recording_new-1);
-                end
-                
-                
+
+
                 if exist('preframes', 'var')
                     preframes = preframes + 1;
-%                     frameZero = frameZero - floor(preframes); % this is a fix for the SO errors --> simulation started a few frames earlier to avoid activation limit
+                    %                     frameZero = frameZero - floor(preframes); % this is a fix for the SO errors --> simulation started a few frames earlier to avoid activation limit
                     frameZero = floor(preframes) - frameZero; % this is a fix for the SO errors --> simulation started a few frames earlier to avoid activation limit
 
                 end
-                
+
                 if isfield(cycle, 'left')
                     for j = 1 : size(cycle.left.start, 2)
                         clear tempStructLeft;
                         for i = 1 : numel(tempFieldNames)
-                            tempStructLeft.(tempFieldNames{i}) = tempData.(tempFieldNames{i})(cycle.left.start(j) - frameZero : cycle.left.end(j) + frameZero - 1);
+                            tempStructLeft.(tempFieldNames{i}) = tempData.(tempFieldNames{i})(cycle.left.start(j) - frameZero : cycle.left.end(j) - frameZero - 1);
                         end
                         data.IK.(modelList{p}).(['T_' trialList{trialNr} '_' num2str(j) '_left']) = tempStructLeft;
                         data.IK.(modelList{p}).(['T_' trialList{trialNr} '_' num2str(j) '_left']).durationInSeconds = double(cycle.left.end(j) - cycle.left.start(j)) / frequency;
@@ -94,13 +103,13 @@ for p = 1 : numel(modelList)
                         data.IK.(modelList{p}).(['T_' trialList{trialNr} '_' num2str(j) '_right']).footOffFrame = double(cycle.right.footOff(j) - cycle.right.start(j));
                     end
                 end
-                
+
                 % check for IK_fehler.txt bzw IK_withTorsoOutOfRecommendation.txt
                 % ErrorScore 1: Alles cool
                 % ErrorScore 2: Nur Marker errors am Oberkörper zu hoch
                 % ErrorScore 3: Marker error bei Inverse kinematic zu hoch
                 % ErrorScore 4: Fehler bei Simulation
-                
+
                 if isfile([currentFolder '\IK_fehler.txt']) && isfile([currentFolder '\IK_withTorsoOutOfRecommendation.txt']) && ~isfile([currentFolder '\IK_noProb.txt'])
                     % beide files vorhanden --> ErrorScore 3 --> bad
                     ErrorScores(3,1) = ErrorScores(3,1)+1;
@@ -115,8 +124,8 @@ for p = 1 : numel(modelList)
                     data.ErrorScoreList.ErrorScore1{ErrorScores(1,1)} = currentFolder;
                 end
             end
-            
-            
+
+
             idFile = fullfile(currentFolder, 'Output', 'ID', 'inverse_dynamics.sto');
             if isfile(idFile)
                 data.ID.(modelList{p}).model_mass = model_mass;
@@ -126,6 +135,31 @@ for p = 1 : numel(modelList)
                 tempFieldNames = fieldnames(tempData);
                 tempStructLeft = struct;
                 tempStructRight = struct;
+
+                if tempData.time(1) >0
+                    beginning_recording_new = round(tempData.time(1)/(1/frequency));
+                    preframes = preframes - (beginning_recording_new-1);
+                    if isfield(cycle, 'left') && isfield(cycle, 'right')
+                        cycle.left.start = cycle.left.start - (beginning_recording_new-1);
+                        cycle.left.end = cycle.left.end - (beginning_recording_new-1);
+                        cycle.left.footOff = cycle.left.footOff - (beginning_recording_new-1);
+                        cycle.right.start = cycle.right.start - (beginning_recording_new-1);
+                        cycle.right.end = cycle.right.end - (beginning_recording_new-1);
+                        cycle.right.footOff = cycle.right.footOff - (beginning_recording_new-1);
+
+                    elseif isfield(cycle, 'left')
+                        cycle.left.start = cycle.left.start - (beginning_recording_new-1);
+                        cycle.left.end = cycle.left.end - (beginning_recording_new-1);
+                        cycle.left.footOff = cycle.left.footOff - (beginning_recording_new-1);
+
+                    else
+                        cycle.right.start = cycle.right.start (beginning_recording_new-1);
+                        cycle.right.end = cycle.right.end - (beginning_recording_new-1);
+                        cycle.right.footOff = cycle.right.footOff - (beginning_recording_new-1);
+
+                    end
+                end
+
                 if isfield(cycle, 'left') && isfield(cycle, 'right')
                     frameZero = min(min(cycle.left.start), min(cycle.right.start)) - 1;
                 elseif isfield(cycle, 'left')
@@ -133,11 +167,11 @@ for p = 1 : numel(modelList)
                 else
                     frameZero = min(cycle.right.start) - 1;
                 end
-                
+
                 if exist('preframes', 'var')
-                    frameZero = frameZero - floor(preframes); % this is a fix for the SO errors --> simulation started a few frames earlier to avoid activation limit
+                    frameZero = floor(preframes)-frameZero; % this is a fix for the SO errors --> simulation started a few frames earlier to avoid activation limit
                 end
-                
+
                 if isfield(cycle, 'left')
                     for j = 1 : size(cycle.left.start, 2)
                         clear tempStructLeft;
@@ -152,15 +186,15 @@ for p = 1 : numel(modelList)
                     for j = 1 : size(cycle.right.start, 2)
                         clear tempStructRight;
                         for i = 1 : numel(tempFieldNames)
-                            tempStructRight.(tempFieldNames{i}) = tempData.(tempFieldNames{i})(cycle.right.start(j) - frameZero : cycle.right.end(j) - frameZero - 1);
+                            tempStructRight.(tempFieldNames{i}) = tempData.(tempFieldNames{i})(cycle.right.start(j) - frameZero : cycle.right.end(j) - frameZero -1);
                         end
                         data.ID.(modelList{p}).(['T_' trialList{trialNr} '_' num2str(j) '_right']) = tempStructRight;
                         data.ID.(modelList{p}).(['T_' trialList{trialNr} '_' num2str(j) '_right']).durationInSeconds = double(cycle.right.end(j) - cycle.right.start(j)) / frequency;
                     end
                 end
             end
-            
-            
+
+
             soFile = fullfile(currentFolder, 'Output', 'SO', '_StaticOptimization_force.sto');
             if isfile(soFile)
                 data.SO.(modelList{p}).model_mass = model_mass;
@@ -170,6 +204,28 @@ for p = 1 : numel(modelList)
                 tempFieldNames = fieldnames(tempData);
                 tempStructLeft = struct;
                 tempStructRight = struct;
+
+                if tempData.time(1) >0
+                    beginning_recording_new = round(tempData.time(1)/(1/frequency));
+                    preframes = preframes - (beginning_recording_new-1);
+                    if isfield(cycle, 'left') && isfield(cycle, 'right')
+                        cycle.left.start = cycle.left.start - (beginning_recording_new-1);
+                        cycle.left.end = cycle.left.end - (beginning_recording_new-1);
+                        cycle.left.footOff = cycle.left.footOff - (beginning_recording_new-1);
+                        cycle.right.start = cycle.right.start - (beginning_recording_new-1);
+                        cycle.right.end = cycle.right.end - (beginning_recording_new-1);
+                        cycle.right.footOff = cycle.right.footOff - (beginning_recording_new-1);
+                    elseif isfield(cycle, 'left')
+                        cycle.left.start = cycle.left.start - (beginning_recording_new-1);
+                        cycle.left.end = cycle.left.end - (beginning_recording_new-1);
+                        cycle.left.footOff = cycle.left.footOff - (beginning_recording_new-1);
+                    else
+                        cycle.right.start = cycle.right.start (beginning_recording_new-1);
+                        cycle.right.end = cycle.right.end - (beginning_recording_new-1);
+                        cycle.right.footOff = cycle.right.footOff - (beginning_recording_new-1);
+                    end
+                end
+
                 if isfield(cycle, 'left') && isfield(cycle, 'right')
                     frameZero = min(min(cycle.left.start), min(cycle.right.start)) - 1;
                 elseif isfield(cycle, 'left')
@@ -177,17 +233,19 @@ for p = 1 : numel(modelList)
                 else
                     frameZero = min(cycle.right.start) - 1;
                 end
-                
-                           
+
+
                 if exist('preframes', 'var')
-                    frameZero = frameZero - floor(preframes); % this is a fix for the SO errors --> simulation started a few frames earlier to avoid activation limit
+                    %                     frameZero = frameZero - floor(preframes); % this is a fix for the SO errors --> simulation started a few frames earlier to avoid activation limit
+                    frameZero = floor(preframes) - frameZero; % this is a fix for the SO errors --> simulation started a few frames earlier to avoid activation limit
+
                 end
 
                 if isfield(cycle, 'left')
                     for j = 1 : size(cycle.left.start, 2)
                         clear tempStructLeft;
                         for i = 1 : numel(tempFieldNames)
-                            tempStructLeft.(tempFieldNames{i}) = tempData.(tempFieldNames{i})(cycle.left.start(j) - frameZero : cycle.left.end(j) - frameZero - 1);
+                            tempStructLeft.(tempFieldNames{i}) = tempData.(tempFieldNames{i})(cycle.left.start(j) - frameZero : cycle.left.end(j) - frameZero -1);
                         end
                         data.SO.(modelList{p}).(['T_' trialList{trialNr} '_' num2str(j) '_left']) = tempStructLeft;
                         data.SO.(modelList{p}).(['T_' trialList{trialNr} '_' num2str(j) '_left']).durationInSeconds = double(cycle.left.end(j) - cycle.left.start(j)) / frequency;
@@ -197,14 +255,14 @@ for p = 1 : numel(modelList)
                     for j = 1 : size(cycle.right.start, 2)
                         clear tempStructRight;
                         for i = 1 : numel(tempFieldNames)
-                            tempStructRight.(tempFieldNames{i}) = tempData.(tempFieldNames{i})(cycle.right.start(j) - frameZero : cycle.right.end(j) - frameZero - 1);
+                            tempStructRight.(tempFieldNames{i}) = tempData.(tempFieldNames{i})(cycle.right.start(j) - frameZero : cycle.right.end(j) - frameZero -1);
                         end
                         data.SO.(modelList{p}).(['T_' trialList{trialNr} '_' num2str(j) '_right']) = tempStructRight;
                         data.SO.(modelList{p}).(['T_' trialList{trialNr} '_' num2str(j) '_right']).durationInSeconds = double(cycle.right.end(j) - cycle.right.start(j)) / frequency;
                     end
                 end
             end
-            
+
             soFile = fullfile(currentFolder, 'Output', 'SO', '_StaticOptimization_activation.sto');
             if isfile(soFile)
                 data.SO_Activation.(modelList{p}).model_mass = model_mass;
@@ -214,6 +272,28 @@ for p = 1 : numel(modelList)
                 tempFieldNames = fieldnames(tempData);
                 tempStructLeft = struct;
                 tempStructRight = struct;
+
+%                 if tempData.time(1) >0
+%                     beginning_recording_new = round(tempData.time(1)/(1/frequency));
+%                     preframes = preframes - (beginning_recording_new-1);
+%                     if isfield(cycle, 'left') && isfield(cycle, 'right')
+%                         cycle.left.start = cycle.left.start - (beginning_recording_new-1);
+%                         cycle.left.end = cycle.left.end - (beginning_recording_new-1);
+%                         cycle.left.footOff = cycle.left.footOff - (beginning_recording_new-1);
+%                         cycle.right.start = cycle.right.start - (beginning_recording_new-1);
+%                         cycle.right.end = cycle.right.end - (beginning_recording_new-1);
+%                         cycle.right.footOff = cycle.right.footOff - (beginning_recording_new-1);
+%                     elseif isfield(cycle, 'left')
+%                         cycle.left.start = cycle.left.start - (beginning_recording_new-1);
+%                         cycle.left.end = cycle.left.end - (beginning_recording_new-1);
+%                         cycle.left.footOff = cycle.left.footOff - (beginning_recording_new-1);
+%                     else
+%                         cycle.right.start = cycle.right.start (beginning_recording_new-1);
+%                         cycle.right.end = cycle.right.end - (beginning_recording_new-1);
+%                         cycle.right.footOff = cycle.right.footOff - (beginning_recording_new-1);
+%                     end
+%                 end
+
                 if isfield(cycle, 'left') && isfield(cycle, 'right')
                     frameZero = min(min(cycle.left.start), min(cycle.right.start)) - 1;
                 elseif isfield(cycle, 'left')
@@ -221,12 +301,12 @@ for p = 1 : numel(modelList)
                 else
                     frameZero = min(cycle.right.start) - 1;
                 end
-                
-                
+
                 if exist('preframes', 'var')
-                    frameZero = frameZero - floor(preframes); % this is a fix for the SO errors --> simulation started a few frames earlier to avoid activation limit
+                    %                     frameZero = frameZero - floor(preframes); % this is a fix for the SO errors --> simulation started a few frames earlier to avoid activation limit
+                    frameZero = floor(preframes) - frameZero; % this is a fix for the SO errors --> simulation started a few frames earlier to avoid activation limit
                 end
-                
+
                 if isfield(cycle, 'left')
                     for j = 1 : size(cycle.left.start, 2)
                         clear tempStructLeft;
@@ -248,7 +328,7 @@ for p = 1 : numel(modelList)
                     end
                 end
             end
-            
+
             jrlFile = fullfile(currentFolder, 'Output', 'JRL', '_JointReaction_ReactionLoads.sto');
             if isfile(jrlFile)
                 data.JRL.(modelList{p}).model_mass = model_mass;
@@ -258,6 +338,28 @@ for p = 1 : numel(modelList)
                 tempFieldNames = fieldnames(tempData);
                 tempStructLeft = struct;
                 tempStructRight = struct;
+
+                if tempData.time(1) >0
+                    beginning_recording_new = round(tempData.time(1)/(1/frequency));
+                    preframes = preframes - (beginning_recording_new-1);
+                    if isfield(cycle, 'left') && isfield(cycle, 'right')
+                        cycle.left.start = cycle.left.start - (beginning_recording_new-1);
+                        cycle.left.end = cycle.left.end - (beginning_recording_new-1);
+                        cycle.left.footOff = cycle.left.footOff - (beginning_recording_new-1);
+                        cycle.right.start = cycle.right.start - (beginning_recording_new-1);
+                        cycle.right.end = cycle.right.end - (beginning_recording_new-1);
+                        cycle.right.footOff = cycle.right.footOff - (beginning_recording_new-1);
+                    elseif isfield(cycle, 'left')
+                        cycle.left.start = cycle.left.start - (beginning_recording_new-1);
+                        cycle.left.end = cycle.left.end - (beginning_recording_new-1);
+                        cycle.left.footOff = cycle.left.footOff - (beginning_recording_new-1);
+                    else
+                        cycle.right.start = cycle.right.start (beginning_recording_new-1);
+                        cycle.right.end = cycle.right.end - (beginning_recording_new-1);
+                        cycle.right.footOff = cycle.right.footOff - (beginning_recording_new-1);
+                    end
+                end
+
                 if isfield(cycle, 'left') && isfield(cycle, 'right')
                     frameZero = min(min(cycle.left.start), min(cycle.right.start)) - 1;
                 elseif isfield(cycle, 'left')
@@ -265,17 +367,18 @@ for p = 1 : numel(modelList)
                 else
                     frameZero = min(cycle.right.start) - 1;
                 end
-                
-                
+
+
                 if exist('preframes', 'var')
-                    frameZero = frameZero - floor(preframes); % this is a fix for the SO errors --> simulation started a few frames earlier to avoid activation limit
+                    %                     frameZero = frameZero - floor(preframes); % this is a fix for the SO errors --> simulation started a few frames earlier to avoid activation limit
+                    frameZero = floor(preframes) - frameZero; % this is a fix for the SO errors --> simulation started a few frames earlier to avoid activation limit
                 end
-                
+
                 if isfield(cycle, 'left')
                     for j = 1 : size(cycle.left.start, 2)
                         clear tempStructLeft;
                         for i = 1 : numel(tempFieldNames)
-                            tempStructLeft.(tempFieldNames{i}) = tempData.(tempFieldNames{i})(cycle.left.start(j) - frameZero : cycle.left.end(j) - frameZero - 1);
+                            tempStructLeft.(tempFieldNames{i}) = tempData.(tempFieldNames{i})(cycle.left.start(j) - frameZero : cycle.left.end(j) - frameZero -1);
                         end
                         data.JRL.(modelList{p}).(['T_' trialList{trialNr} '_' num2str(j) '_left']) = tempStructLeft;
                         data.JRL.(modelList{p}).(['T_' trialList{trialNr} '_' num2str(j) '_left']).durationInSeconds = double(cycle.left.end(j) - cycle.left.start(j)) / frequency;
@@ -285,7 +388,7 @@ for p = 1 : numel(modelList)
                     for j = 1 : size(cycle.right.start, 2)
                         clear tempStructRight;
                         for i = 1 : numel(tempFieldNames)
-                            tempStructRight.(tempFieldNames{i}) = tempData.(tempFieldNames{i})(cycle.right.start(j) - frameZero : cycle.right.end(j) - frameZero - 1);
+                            tempStructRight.(tempFieldNames{i}) = tempData.(tempFieldNames{i})(cycle.right.start(j) - frameZero : cycle.right.end(j) - frameZero -1);
                         end
                         data.JRL.(modelList{p}).(['T_' trialList{trialNr} '_' num2str(j) '_right']) = tempStructRight;
                         data.JRL.(modelList{p}).(['T_' trialList{trialNr} '_' num2str(j) '_right']).durationInSeconds = double(cycle.right.end(j) - cycle.right.start(j)) / frequency;
@@ -298,7 +401,7 @@ for p = 1 : numel(modelList)
         else
             disp('reprocess this trial! cycle variable is unsorted!');
         end
-    end 
+    end
 end
 
 %% create table with #trials per Error Score & percentage of total #trials
