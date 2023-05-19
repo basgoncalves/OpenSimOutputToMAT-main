@@ -1,0 +1,411 @@
+clear all; close all;
+clc;
+activate_msk_modelling
+
+% add: choose data to plot, choose std/all trials
+
+%% individual data to be changed before every run
+subj = 'P04';
+surg = '\post';%\pre or \post or ''
+
+%% choose what you want to run
+scale = 0;
+add_sacrum = 0;
+replace_nan = 0;
+IK_max_error = 0;
+check_muscle_moment_arm = 0;
+plot_IK = 0;
+plot_ID = 1;
+plot_SO = 0;
+plot_JRF = 0;
+plot_std = 0;
+plot_all_trials = 1;
+
+%%
+switch surg
+    case '\pre'
+        mri = 1;
+    case '\post'
+        mri = 0;
+    case ''
+        mri = 1;
+end
+part = [subj surg];
+subj_name = [subj '_scaled'];
+td01 = 0;
+folder_ending = '';
+folder_sacrum = '';
+savepath = ['C:\Users\Balu\Nextcloud\Documents\MA\Daten\' subj surg];
+
+
+switch part
+    case 'P01\pre'
+        trial_list = {'dynamic03', 'dynamic04', 'dynamic05', 'dynamic06', 'dynamic07', 'dynamic08', 'dynamic09'};
+        subj_mass = 32.9;
+    case 'P01\post'
+        trial_list = {'Dynamic01', 'Dynamic08', 'Dynamic09', 'Dynamic14'};
+        subj_mass = 62.5;
+    case 'P02\pre'
+        trial_list = {'dynamic06', 'dynamic08', 'dynamic09', 'dynamic27'};
+        subj_mass = 39.3;
+    case 'P02\post'
+        trial_list = {'dynamic07', 'dynamic08', 'dynamic10', 'dynamic12'};
+        subj_mass = 39.1;
+    case 'P03\pre'
+        trial_list = {'Dynamic06', 'Dynamic07', 'Dynamic08', 'Dynamic10', 'Dynamic11'};
+        subj_mass = 55.9;
+    case 'P03\post'
+        trial_list = {'Dynamic07', 'Dynamic08', 'Dynamic09', 'Dynamic13', 'Dynamic14', 'Dynamic15'};
+        subj_mass = 55.7;
+    case 'P04\pre'
+        trial_list = {'Dynamic07', 'Dynamic21', 'Dynamic22', 'Dynamic23', 'Dynamic25'};
+        %         trial_list = {'Dynamic22'};
+        subj_mass = 40.9;
+    case 'P04\post'
+        trial_list = {'Dynamic05', 'Dynamic07','Dynamic09', 'Dynamic10', 'Dynamic17', 'Dynamic21'};
+        subj_mass = 49.7;
+    case 'P05\pre'
+        trial_list = {'Dynamic5', 'Dynamic7', 'Dynamic9', 'Dynamic11', 'Dynamic12', 'Dynamic17'};
+        subj_mass = 66.3;
+    case 'P05\post'
+        trial_list = {'dynamic09', 'dynamic12', 'dynamic15', 'dynamic21', 'dynamic22'};
+        subj_mass = 72.4;
+    case 'TD01'
+        trial_list = {'3DGAIT_MRI_W1', '3DGAIT_MRI_W3', '3DGAIT_MRI_W5', '3DGAIT_MRI_W6', '3DGAIT_MRI_W8'}; %TD01
+        subj_mass = 38.9;
+        td01 = 1;
+        folder_sacrum = ' sacrum';
+        %         folder_ending = '_test';
+    case 'TD04'
+        trial_list = {'3DGAIT_B_W1', '3DGAIT_B_W2', '3DGAIT_B_W8', '3DGAIT_B_W9', '3DGAIT_B_W10', '3DGAIT_B_W12', '3DGAIT_B_W18', '3DGAIT_B_W19', '3DGAIT_B_W20' }; %TD04
+        subj_mass = 54.8;
+        folder_sacrum = ' sacrum';
+    case 'TD06'
+        trial_list = {'3DGAIT_B_W12', '3DGAIT_B_W19', '3DGAIT_B_W14', '3DGAIT_B_W20'}; %TD06
+        subj_mass = 29.6;
+        folder_sacrum = ' sacrum';
+    case 'TD07'
+        trial_list = {'3DGAIT_A_W6', '3DGAIT_A_W7', '3DGAIT_A_W9', '3DGAIT_A_W18', '3DGAIT_A_W25', '3DGAIT_A_W27', '3DGAIT_A_W29', '3DGAIT_A_W32'}; %TD07
+        subj_mass = 20.4;
+        folder_sacrum = ' sacrum';
+end
+markers_torso_list = {'STRN','T10','C7'};
+markers_legs_list = {'LASI', 'RASI', 'SACR', 'LT1', 'LT2', 'LT3', 'LS1', 'LS2', 'LS3', 'LHEE', 'LTOE', 'RT1', 'RT2', 'RT3', 'RS1', 'RS2', 'RS3', 'RHEE', 'RTOE'};
+% markers_list = {'T10','C7','LASI', 'RASI', 'SACR','LTHI1', 'LTHI2', 'LTHI3', 'LTIB1', 'LTIB2', 'LTIB3', 'LHEEL', 'LTOE', 'RTHI1', 'RTHI2', 'RTHI3', 'RTIB1', 'RTIB2', 'RTIB3', 'RHEEL', 'RTOE'};
+% markers_list = {'LASI','RASI','LASI', 'RASI', 'RTHI1', 'RTHI2', 'RTHI3', 'RTIB1', 'RTIB2', 'RTIB3', 'RHEEL', 'RTOE', 'RTHI1', 'RTHI2', 'RTHI3', 'RTIB1', 'RTIB2', 'RTIB3', 'RHEEL', 'RTOE'};
+subject_folder = ['C:\Users\Balu\Nextcloud\Documents\MA\Daten\' subj surg '\output automization' folder_sacrum '\FINAL_PERSONALISEDTORSIONS_scaled_final' folder_ending '\'];
+events_folder = ['C:\Users\Balu\Nextcloud\Documents\MA\Daten\' subj surg '\C3D\']; % path for C3D events
+
+%% generate scale template
+if scale == 1 && mri == 1
+    [scalePelvis, scaleTibR, scaleTibL, scaleFemR, scaleFemL] = scale_template(subj, subj_name, subj_mass, surg);
+elseif scale == 1 && mri == 0
+    scale_template_no_mri(subj, subj_name, subj_mass, surg);
+end
+
+%% replace marker names
+if replace_nan == 1
+    trc_path = ['C:\Users\Balu\Nextcloud\Documents\MA\Daten\' subj surg '\C3D\' trial_list{1} '\marker_experimental_with_sacrum.trc'];
+    replace_marker_names_Hans(trc_path);
+end
+
+%% add sacrum marker
+if add_sacrum == 1
+    statictrcpath = ['C:\Users\Balu\Nextcloud\Documents\MA\Daten\' subj surg '\C3D\' trial_list{1} '\marker_experimental.trc'];
+    trc = add_sacrum_to_trc(statictrcpath);
+end
+
+%% modify max isometric force
+% import org.opensim.modeling.*
+% ModelIn = 'C:\Users\Balu\Nextcloud\Documents\MA\Daten\P01\pre\Model\FINAL_PERSONALISEDTORSIONS_scaled_final.osim';
+% model = Model(ModelIn);
+% muscles = model.getMuscles();
+% nMuscles = muscles.getSize();
+%
+% for ii = 0:nMuscles-1
+%     current_max = muscles.get(ii).getMaxIsometricForce;
+%     muscles.get(ii).setMaxIsometricForce(current_max *1.5);
+% end
+%
+% % Write the model to a new file
+% ModelOut = strrep(ModelIn, '.osim','_new_isom.osim');
+% model.print(ModelOut)
+%% determine maximum marker error in IK
+if IK_max_error==1
+    id = trial_list{1}; % id of trial
+    [dist_max, max_err, loc_err] = IK_max_marker_error(subj,id, surg, markers_torso_list, markers_legs_list);
+end
+
+%% check muscle moment arm
+if check_muscle_moment_arm == 1
+    modelFilename = ['C:\Users\Balu\Nextcloud\Documents\MA\Daten\' subj surg '\Model\FINAL_PERSONALISEDTORSIONS_scaled_final.osim'];
+    if td01 == 0
+        motionFilename = ['C:\Users\Balu\Nextcloud\Documents\MA\Daten\' subj surg '\output automization' folder_sacrum '\FINAL_PERSONALISEDTORSIONS_scaled_final\' trial_list{1} '\Output\IK\IK.mot'];
+        momentArmsAreWrong_l = checkMuscleMomentArms_l(modelFilename, motionFilename);
+        momentArmsAreWrong_r = checkMuscleMomentArms_r(modelFilename, motionFilename);
+    elseif td01 == 1
+        motionFilename = ['C:\Users\Balu\Nextcloud\Documents\MA\Daten\' subj surg '\output automization' folder_sacrum '\FINAL_PERSONALISEDTORSIONS_scaled_final\' trial_list{1} '\Output\IK\IK.mot'];
+        momentArmsAreWrong_r = checkMuscleMomentArms_r(modelFilename, motionFilename);
+    end
+end
+%% plot results
+
+% IK
+if plot_IK == 1
+    calc = 'IK';
+    filename = 'joint_angles_';
+    angles_var_list = {'hip_flexion_r', 'hip_adduction_r', 'hip_rotation_r',  'knee_angle_r',...
+        'ankle_angle_r', 'hip_flexion_l','hip_adduction_l','hip_rotation_l','knee_angle_l','ankle_angle_l'};
+    file_path_end = '\Output\IK\IK.mot';
+    y_label = 'Joint angles (deg)';
+    BW_norm = 0;
+    if plot_all_trials == 1
+
+        plot_data(trial_list, angles_var_list, subject_folder, events_folder, file_path_end, y_label, subj_mass, BW_norm, calc)
+    end
+    if plot_std == 1
+        [data_r, data_l] = collect_data(trial_list, angles_var_list, subject_folder, events_folder, file_path_end, y_label, subj_mass, BW_norm, calc);
+        color = 'red';
+        % F = linspace(1,100,length(data_r{1})); % x axis
+        smth = 1; % smoothing factor
+        alpha = 0; % transparency of the shading
+
+        % right leg
+        if isempty(data_r) == 0
+            titles = angles_var_list(1:length(angles_var_list)/2);
+            plot_std(data_r, titles, alpha, color, smth, y_label)
+            suptitle([calc ' of ' subj surg])
+            saveas(gcf,fullfile(savepath, [filename subj '_r']),'tif')
+            %         f = gcf;
+            %         f.Name(['Kinematics of the right leg of ' subj surg])
+        end
+
+        % left leg
+        if isempty(data_l) == 0
+            titles = angles_var_list(length(angles_var_list)/2+1:end);
+            plot_std(data_l, titles, alpha, color, smth, y_label)
+            suptitle([calc ' of ' subj surg])
+            saveas(gcf,fullfile(savepath, [filename subj '_l']),'tif')
+        end
+    end
+end
+
+% ID
+if plot_ID == 1
+    calc = 'ID';
+    filename = 'joint_moments_';
+    moments_var_list = {'hip_flexion_r_moment',  'knee_angle_r_moment',  'ankle_angle_r_moment', 'hip_flexion_l_moment','knee_angle_l_moment','ankle_angle_l_moment'};
+    file_path_end = '\Output\ID\inverse_dynamics.sto';
+    y_label = 'Joint moments (Nm/BW)';%
+    BW_norm = 1;
+    if plot_all_trials == 1
+        plot_data(trial_list(1), moments_var_list, subject_folder, events_folder, file_path_end, y_label, subj_mass, BW_norm, calc)
+    end
+    if plot_std == 1
+        [data_r, data_l] = collect_data(trial_list, moments_var_list, subject_folder, events_folder, file_path_end, y_label, subj_mass, BW_norm, calc);
+        color = 'red';
+        F = linspace(1,100,length(data_r{1})); % x axis
+        smth = 1; % smoothing factor
+        alpha = 0; % transparency of the shading
+
+        % right leg
+        if isempty(data_r) == 0
+            titles = moments_var_list(1:length(moments_var_list)/2);
+            plot_std(data_r, titles, alpha, color, smth, y_label)
+            suptitle([calc ' of ' subj surg])
+            saveas(gcf,fullfile(savepath, [filename subj '_r']),'tif')
+            % ik = gcf;
+            % figure(ik)
+            % title(['Dynamics of the right leg of ' subj surg])
+        end
+
+        % left leg
+        if isempty(data_l) == 0
+            titles = moments_var_list(length(moments_var_list)/2+1:end);
+            plot_std(data_l, titles, alpha, color, smth, y_label)
+            suptitle([calc ' of ' subj surg])
+            saveas(gcf,fullfile(savepath, [filename subj '_l']),'tif')
+            % ik = gcf;
+            % figure(ik)
+            % title(['Dynamics of the left of leg ' subj surg])
+        end
+
+        % saveas(gcf,[subj '_joint_moments.tif'])
+    end
+end
+
+% SO
+if plot_SO == 1
+    calc = 'SO';
+    muscles_var_list = {'tib_ant_r', 'med_gas_r',  'lat_gas_r', 'bifemlh_r','rect_fem_r','soleus_r', 'tib_ant_l', 'med_gas_l',  'lat_gas_l', 'bifemlh_l','rect_fem_l','soleus_l'};
+    %                     'tibialis anterior', 'gastrocnemius medialis',  'gastrocnemius lateralis', 'flexor hallucis','rectus femoris','soleus'};
+    activation = 1;
+    forces = 1;
+    if activation == 1
+        file_path_end = '\Output\SO\_StaticOptimization_activation.sto';
+        y_label = 'muscle activation [%]';
+        BW_norm = 0;
+        filename = 'muscle_activation_';
+        if plot_all_trials == 1
+            plot_data(trial_list, muscles_var_list, subject_folder, events_folder, file_path_end, y_label, subj_mass, BW_norm, calc)
+        end
+            %     saveas(gcf,[subj '_muscle_activation.tif'])
+       if plot_std == 1
+            [data_r, data_l] = collect_data(trial_list, muscles_var_list, subject_folder, events_folder, file_path_end, y_label, subj_mass, BW_norm, calc);
+        color = 'red';
+        smth = 1; % smoothing factor
+        alpha = 0; % transparency of the shading
+
+        % right leg
+        if isempty(data_r) == 0
+            titles = muscles_var_list(1:length(muscles_var_list)/2);
+            plot_std(data_r, titles, alpha, color, smth, y_label)
+            suptitle([calc ' of ' subj surg])
+
+            saveas(gcf,fullfile(savepath, [filename subj '_r']),'tif')
+            % ik = gcf;
+            % figure(ik)
+            % title(['Muscle activation of the right leg of ' subj surg])
+        end
+
+        % left leg
+        if isempty(data_l) == 0
+            titles = muscles_var_list(length(muscles_var_list)/2+1:end);
+            plot_std(data_l, titles, alpha, color, smth, y_label)
+            suptitle([calc ' of ' subj surg])
+
+            saveas(gcf,fullfile(savepath, [filename subj '_l']),'tif')
+            % ik = gcf;
+            % figure(ik)
+            % title(['Muscle activation of the left of leg ' subj surg])
+        end
+       end
+    end
+    if forces == 1
+        file_path_end = '\Output\SO\_StaticOptimization_force.sto';
+        y_label = 'muscle force [N/BW]';
+        BW_norm = 1;
+        filename = 'muscle_forces_';
+        if plot_all_trials == 1
+            plot_data(trial_list, muscles_var_list, subject_folder, events_folder, file_path_end, y_label, subj_mass, BW_norm, calc)
+        end
+        if plot_std == 1
+            %     saveas(gcf,[subj '_muscle_forces.tif'])
+        [data_r, data_l] = collect_data(trial_list, muscles_var_list, subject_folder, events_folder, file_path_end, y_label, subj_mass, BW_norm, calc);
+        color = 'red';
+        F = linspace(1,100,length(data_r{1})); % x axis
+        smth = 1; % smoothing factor
+        alpha = 0; % transparency of the shading
+
+        % right leg
+        if isempty(data_r) == 0
+            titles = muscles_var_list(1:length(muscles_var_list)/2);
+            plot_std(data_r, titles, alpha, color, smth, y_label)
+            suptitle([calc ' of ' subj surg])
+            saveas(gcf,fullfile(savepath, [filename subj '_r']),'tif')
+            % ik = gcf;
+            % figure(ik)
+            % title(['Muscle forces of the right leg of ' subj surg])
+        end
+
+        % left leg
+        if isempty(data_l) == 0
+            titles = muscles_var_list(length(muscles_var_list)/2+1:end);
+            plot_std(data_l, titles, alpha, color, smth, y_label)
+            suptitle([calc ' of ' subj surg])
+            saveas(gcf,fullfile(savepath, [filename subj '_l']),'tif')
+            % ik = gcf;
+            % figure(ik)
+            % title(['Muscle forces of the left of leg ' subj surg])
+        end
+        end
+    end
+end
+
+% JRF
+if plot_JRF == 1
+    calc = 'JCF';
+    filename = 'joint_contact_forces_';
+    joints_var_list = {'hip_r_on_pelvis_in_pelvis', 'knee_r_on_tibia_r_in_tibia_r', 'ankle_r_on_talus_r_in_talus_r', 'hip_l_on_pelvis_in_pelvis', 'knee_l_on_tibia_l_in_tibia_l', 'ankle_l_on_talus_l_in_talus_l'};
+    %'hip contact force (on pelvis)', 'knee contact force (on tibia)',  'ankle contact force (on talus)'};
+    file_path_end = '\Output\JRL\_JointReaction_ReactionLoads.sto';
+    BW_norm = 1; % data normalized to bodyweight (mass*9.81)
+    y_label = 'joint contact force [N/BW]';
+
+    if plot_all_trials == 1
+    end
+    if plot_std == 1
+    [data_r, data_l] = collect_JRF(trial_list, joints_var_list, subject_folder, events_folder, file_path_end, y_label, subj_mass, BW_norm, calc);
+    color = 'red';
+    % F = linspace(1,100,length(data_r{1})); % x axis
+    smth = 1; % smoothing factor
+    alpha = 0; % transparency of the shading
+
+    % right leg
+    if isempty(data_r) == 0
+        titles = joints_var_list(1:length(joints_var_list)/2);
+        plot_std(data_r, titles, alpha, color, smth, y_label)
+        suptitle([calc ' of ' subj surg])
+        saveas(gcf,fullfile(savepath, [filename subj '_r']),'tif')
+        % ik = gcf;
+        % figure(ik)
+        % title(['Joint contact forces of the right leg of ' subj surg])
+    end
+
+    % left leg
+    if isempty(data_l) == 0
+        titles = joints_var_list(length(joints_var_list)/2+1:end);
+        plot_std(data_l, titles, alpha, color, smth, y_label)
+        suptitle([calc ' of ' subj surg])
+        saveas(gcf,fullfile(savepath, [filename subj '_l']),'tif')
+        % ik = gcf;
+        % figure(ik)
+        % title(['Joint contact forces of the left of leg ' subj surg])
+    end
+
+    end
+    %
+
+    % saveas(gcf,[subj '_joint_contact_forces.tif'])
+end
+
+
+%% 
+
+paths = {'C:\Users\Balu\Nextcloud\Documents\MA\Daten\P01\pre\output automization';
+          'C:\Users\Balu\Nextcloud\Documents\MA\Daten\P01\post\output automization';
+          'C:\Users\Balu\Nextcloud\Documents\MA\Daten\P02\pre\output automization';
+          'C:\Users\Balu\Nextcloud\Documents\MA\Daten\P02\post\output automization';
+          'C:\Users\Balu\Nextcloud\Documents\MA\Daten\P03\pre\output automization';
+          'C:\Users\Balu\Nextcloud\Documents\MA\Daten\P03\post\output automization';
+          'C:\Users\Balu\Nextcloud\Documents\MA\Daten\P04\pre\output automization';
+          'C:\Users\Balu\Nextcloud\Documents\MA\Daten\P04\post\output automization';
+          'C:\Users\Balu\Nextcloud\Documents\MA\Daten\P05\pre\output automization';
+          'C:\Users\Balu\Nextcloud\Documents\MA\Daten\P05\post\output automization';
+          'C:\Users\Balu\Nextcloud\Documents\MA\Daten\TD01\output automization';
+          'C:\Users\Balu\Nextcloud\Documents\MA\Daten\TD04\output automization';
+          'C:\Users\Balu\Nextcloud\Documents\MA\Daten\TD06\output automization';
+          'C:\Users\Balu\Nextcloud\Documents\MA\Daten\TD07\output automization';};
+
+for i = 1:length(paths)
+    outputPath = paths{i};
+    saveDataToStruct(outputPath)
+end
+
+
+
+
+
+
+
+figure;plot(data.IK.FINAL_PERSONALISEDTORSIONS_scaled_final.T_Dynamic08_1_right.ankle_angle_r)
+
+% trial that starts at 1 on c3d
+stoFile = 'C:\Users\Balu\Nextcloud\Documents\MA\Daten\P03\post\output automization\FINAL_PERSONALISEDTORSIONS_scaled_final\Dynamic08\Output\IK\IK.mot';
+frame_first_c3d_in_openSim_frame = get_frame_zero(stoFile);
+
+% trial that first event - initial frame < intial frame
+stoFile = 'C:\Users\Balu\Nextcloud\Documents\MA\Daten\P01\post\output automization\FINAL_PERSONALISEDTORSIONS_scaled_final\Dynamic08\Output\IK\IK.mot';
+frame_first_c3d_in_openSim_frame = get_frame_zero(stoFile);
+
+
