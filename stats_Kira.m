@@ -11,7 +11,7 @@ run_stats = true;
 
 %% organise data in struct 
 if gather_data_in_struct
-    Vars = {'IK','ID','SO','SO_Activation','JRL'};
+    Analyses = {'IK','ID','SO','SO_Activation','JRL'};
     for iSubj = 1:length(S.subjects)
         for iSess = 1:length(S.sessions)
 
@@ -23,13 +23,14 @@ if gather_data_in_struct
 
             load(Paths.matResults)
 
-            for iVar = 1:length(Vars)
-                curr_var = Vars{iVar};
-                data_struct = data.(curr_var).FINAL_PERSONALISEDTORSIONS_scaled_final;
-                results_struct = Results.(curr_var).(['session' num2str(iSess)]);
+            for iVar = 1:length(Analyses)
+                curr_analysis = Analyses{iVar};
+                data_struct = data.(curr_analysis).FINAL_PERSONALISEDTORSIONS_scaled_final;
+                results_struct = Results.(curr_analysis).(['session' num2str(iSess)]);
+
                 [raw,tnorm,results_struct] = time_norm_per_session(data_struct,results_struct);
 
-                Results.(curr_var).(['session' num2str(iSess)]) = results_struct;
+                Results.(curr_analysis).(['session' num2str(iSess)]) = results_struct;
 
             end
         end
@@ -49,7 +50,7 @@ if run_stats
     y = Results.JRL.session1.right.peak_HCF';
     [rsquared,pvalue, p1,rlo,rup] = plotCorr (x,y,1,0.05);
 
-    
+   
   
 
 end

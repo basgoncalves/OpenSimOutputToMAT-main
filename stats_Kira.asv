@@ -6,7 +6,7 @@ add_repos_to_path
 [Results] = get_data_struct; 
 S = get_subjects;
 
-gather_data_in_struct = true;
+gather_data_in_struct = false;
 run_stats = true;
 
 %% organise data in struct 
@@ -49,13 +49,17 @@ if run_stats
     y = Results.JRL.session1.right.peak_HCF';
     [rsquared,pvalue, p1,rlo,rup] = plotCorr (x,y,1,0.05);
 
-    
+   
   
 
 end
 
 %% -------------------------------------------------------------------------------------------------------------- %
 % ---------------------------------------------------- FUCNTIONS ------------------------------------------------ %
+% --------------------------------------------------------------------------------------------------------------- %
+function out  = fp
+out  = filesep;
+
 % --------------------------------------------------------------------------------------------------------------- %
 function add_repos_to_path
 activeFile = [mfilename('fullpath') '.m'];
@@ -65,9 +69,9 @@ addpath(genpath(OpenSimOutputToMAT_Dir))
 disp([OpenSimOutputToMAT_Dir ' added to path'])
 
 
-% msk_modellingDir  = [fileparts(OpenSimOutputToMAT_Dir) '\MSKmodelling'];
-% addpath(genpath(msk_modellingDir))
-% disp([msk_modellingDir ' added to path'])
+msk_modellingDir  = [fileparts(OpenSimOutputToMAT_Dir) '\MSKmodelling'];
+rmpath(genpath(msk_modellingDir))
+disp([msk_modellingDir ' added to path'])
 
 % --------------------------------------------------------------------------------------------------------------- %
 function data_path = get_main_dir()
@@ -332,3 +336,23 @@ f1 = fill(X,Y,'r');
 alpha 0.2                                                           % transparency 
 set(f1,'FaceColor', Color,'EdgeColor','none')
 
+% --------------------------------------------------------------------------------------------------------------- %
+function TimeNormalizedData = TimeNorm (Data,fs)
+
+TimeNormalizedData=[];
+
+for col = 1: size (Data,2)
+    
+    currentData = Data(:,col);
+    currentData(isnan(currentData))=[];
+    if length(currentData)<3
+        TimeNormalizedData(1:101,col)= NaN;
+        continue
+    end
+     
+    timeTrial = 0:1/fs:size(currentData,1)/fs;
+    timeTrial(end)=[];
+    Tnorm = timeTrial(end)/101:timeTrial(end)/101:timeTrial(end);
+    
+    TimeNormalizedData(1:101,col)= interp1(timeTrial,currentData,Tnorm)';
+end
