@@ -3,10 +3,12 @@ function stats_Kira()
 
 
 add_repos_to_path
-[S,Results] = get_data_struct;
+[Results] = get_data_struct; 
+S = get_subjects;
 
 Vars = {'IK','ID','SO','SO_Activation','JRL'};
 
+%% organise data in struct 
 for iSubj = 1:length(S.subjects)
     for iSess = 1:length(S.sessions)
         
@@ -30,7 +32,13 @@ for iSubj = 1:length(S.subjects)
     end
 end
 
-Results
+cd(get_main_dir)
+save('results.mat', 'Results')
+
+%% stats
+
+
+
 %% -------------------------------------------------------------------------------------------------------------- %
 % ---------------------------------------------------- FUCNTIONS ------------------------------------------------ %
 % --------------------------------------------------------------------------------------------------------------- %
@@ -47,14 +55,19 @@ addpath(genpath(msk_modellingDir))
 disp([msk_modellingDir ' added to path'])
 
 % --------------------------------------------------------------------------------------------------------------- %
-function [S,Results] = get_data_struct()
-
+function data_path = get_main_dir()
 activeFile = [mfilename('fullpath') '.m'];
+data_path = [fileparts(fileparts(activeFile)) '\Kira_MSc_data'];
 
+% --------------------------------------------------------------------------------------------------------------- %
+function S = get_subjects()
 S = struct;
-S.dataDir =  [fileparts(fileparts(activeFile)) '\Kira_MSc_data'];
-S.subjects = {getfolders(S.dataDir).name};
+S.subjects = {getfolders(get_main_dir).name};
 S.sessions = {'\pre', '\post', ''};
+
+
+% --------------------------------------------------------------------------------------------------------------- %
+function [Results] = get_data_struct()
 
 Results = struct;
 leg = {'right','left'};
@@ -72,15 +85,15 @@ end
 % --------------------------------------------------------------------------------------------------------------- %
 function Paths = get_data_paths(iSubj,iSess)
 
-[S,Results] = get_data_struct();
-
-session_path = [S.dataDir fp S.subjects{iSubj} fp S.sessions{iSess} fp 'output automization\FINAL_PERSONALISEDTORSIONS_scaled_final'];
-
-Paths.session   = session_path;
+S = get_subjects;
+session_path = [get_main_dir fp S.subjects{iSubj} fp S.sessions{iSess} fp 'output automization\FINAL_PERSONALISEDTORSIONS_scaled_final'];
 trialNames      = {getfolders(session_path).name};
+
+Paths.main      = get_main_dir;
+Paths.session   = session_path;
 Paths.trials    = cellfun(@(c)[session_path fp c],trialNames,'uni',false);
 Paths.trialNames = trialNames;
-Paths.matResults = [fileparts(session_path) fp 'dataStruct_ErrorScores_no_trials_removed_issue_fixed.mat'];
+Paths.matResults = [fileparts(session_path) fp 'dataStruct_ErrorScores_no_trials_removed.mat'];
 
 
 % --------------------------------------------------------------------------------------------------------------- %
@@ -153,8 +166,15 @@ for iVar = variables'
         results_struct.right.(iVar{1}) = [];
         results_struct.left.(iVar{1}) = [];
     end
-    results_struct.right.(iVar{1})(:,end+1) = tnorm.right.(iVar{1});
-    results_struct.left.(iVar{1})(:,end+1) = tnorm.left.(iVar{1});
+    
+    % right leg (try in case the "iVar" is empty)
+    try
+        results_struct.right.(iVar{1})(:,end+1) = tnorm.right.(iVar{1});
+    end
+    % leg leg
+    try
+        results_struct.left.(iVar{1})(:,end+1) = tnorm.left.(iVar{1});
+    end
 end
 
 
