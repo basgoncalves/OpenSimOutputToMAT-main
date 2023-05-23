@@ -57,6 +57,10 @@ end
 %% -------------------------------------------------------------------------------------------------------------- %
 % ---------------------------------------------------- FUCNTIONS ------------------------------------------------ %
 % --------------------------------------------------------------------------------------------------------------- %
+function out  = fp
+out  = filesep;
+
+% --------------------------------------------------------------------------------------------------------------- %
 function add_repos_to_path
 activeFile = [mfilename('fullpath') '.m'];
 
@@ -66,7 +70,7 @@ disp([OpenSimOutputToMAT_Dir ' added to path'])
 
 
 msk_modellingDir  = [fileparts(OpenSimOutputToMAT_Dir) '\MSKmodelling'];
-addpath(genpath(msk_modellingDir))
+rmpath(genpath(msk_modellingDir))
 disp([msk_modellingDir ' added to path'])
 
 % --------------------------------------------------------------------------------------------------------------- %
@@ -254,7 +258,6 @@ if nargin > 1
     end
 end
 
-
 % --------------------------------------------------------------------------------------------------------------- %
 function [rsquared,pvalue, p1,rlo,rup] = plotCorr (x,y,n,Alpha,Color, MakerSize)
 % %% Description - Basilio Goncalves (2020)
@@ -333,4 +336,23 @@ f1 = fill(X,Y,'r');
 alpha 0.2                                                           % transparency 
 set(f1,'FaceColor', Color,'EdgeColor','none')
 
+% --------------------------------------------------------------------------------------------------------------- %
+function TimeNormalizedData = TimeNorm (Data,fs)
 
+TimeNormalizedData=[];
+
+for col = 1: size (Data,2)
+    
+    currentData = Data(:,col);
+    currentData(isnan(currentData))=[];
+    if length(currentData)<3
+        TimeNormalizedData(1:101,col)= NaN;
+        continue
+    end
+     
+    timeTrial = 0:1/fs:size(currentData,1)/fs;
+    timeTrial(end)=[];
+    Tnorm = timeTrial(end)/101:timeTrial(end)/101:timeTrial(end);
+    
+    TimeNormalizedData(1:101,col)= interp1(timeTrial,currentData,Tnorm)';
+end
