@@ -1,7 +1,5 @@
 
 function stats_Kira()
-
-
 add_repos_to_path
 [Results] = get_data_struct; 
 S = get_subjects;
