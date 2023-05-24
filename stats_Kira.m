@@ -6,8 +6,7 @@ add_repos_to_path
 [Results] = get_data_struct; 
 S = get_subjects;
 
-<<<<<<< HEAD
-gather_data_in_struct = true;
+gather_data_in_struct = false;
 run_stats = true;
 
 %% organise data in struct 
@@ -44,63 +43,45 @@ end
 if run_stats
     load([get_main_dir fp 'results.mat'])
     
-    Results = calculate_peaks(Results);                                                                             
-
+    Results = calculate_peaks(Results);
+    sessions = {'session1'; 'session2'; 'session3'};
+    joint = 'KCF';
+    sessions = [sessions; sessions];
+%     titles = ['Session 1: right HCF';'Session 1: right KCF'; 'Session 2: right HCF'; 'Session 2: right KCF';'Session 3: right HCF'; 'Session 3: right KCF' ];
+    figure
+    [ax, pos,FirstCol,LastRow,LastCol] = tight_subplotBG(6,0);
+    for iDOF = 1:6
+    axes(ax(iDOF)); hold on; grid on;
+    plot(Results.JRL.(sessions{iDOF}).left.(joint)); hold on;
+    plot(Results.JRL.(sessions{iDOF}).left.(['peak_' joint '_loc']), Results.JRL.(sessions{iDOF}).left.(['peak_' joint '_val']),'*')
+    title([sessions{iDOF} ' left ' joint])
+    if contains(sessions{iDOF},'session3')
+        joint = 'HCF';
+    end
+    if any(iDOF == FirstCol)
+        ylabel('Joint contact force [N]')
+    elseif any(iDOF == LastRow)
+        xlabel('Gait Cycle [%]')
+    end
+    end
     load_participant_characteristics()
 
-    x = Results.JRL.session1.left.peak_HCF';
-    y = Results.JRL.session1.right.peak_HCF';
-    [rsquared,pvalue, p1,rlo,rup] = plotCorr (x,y,1,0.05);  
+%     x = Results.JRL.session1.left.peak_HCF';
+%     y = Results.JRL.session1.right.peak_HCF';
+%     [rsquared,pvalue, p1,rlo,rup] = plotCorr (x,y,1,0.05);  
 
    
   
 
 end
-=======
-Vars = {'IK','ID','SO','SO_Activation','JRL'};
-
-%% organise data in struct 
-for iSubj = 1:length(S.subjects)
-    for iSess = 1:length(S.sessions)
-        
-        Paths = get_data_paths(iSubj,iSess);
-        if ~isfolder(Paths.session)
-            disp([Paths.session ' does not exist'])
-            continue
-        end
-        
-        load(Paths.matResults)
-         
-        for iVar = 1:length(Vars)
-            curr_var = Vars{iVar};
-            data_struct = data.(curr_var).FINAL_PERSONALISEDTORSIONS_scaled_final;
-            results_struct = Results.(curr_var).(['session' num2str(iSess)]);
-            [raw,tnorm,results_struct] = time_norm_per_session(data_struct,results_struct);
-            
-            Results.(curr_var).(['session' num2str(iSess)]) = results_struct;
-
-        end       
-    end
-end
-
-cd(get_main_dir)
-save('results.mat', 'Results')
-
-%% stats
-% raw_data_r = sqrt(data_fx.^2 + data_fy.^2 + data_fz.^2); % resultant force
-
->>>>>>> df3281196be06f8b145733774e2302288045e768
 
 %% -------------------------------------------------------------------------------------------------------------- %
 % ---------------------------------------------------- FUCNTIONS ------------------------------------------------ %
 % --------------------------------------------------------------------------------------------------------------- %
-<<<<<<< HEAD
 function out  = fp
 out  = filesep;
 
 % --------------------------------------------------------------------------------------------------------------- %
-=======
->>>>>>> df3281196be06f8b145733774e2302288045e768
 function add_repos_to_path
 activeFile = [mfilename('fullpath') '.m'];
 
@@ -110,11 +91,7 @@ disp([OpenSimOutputToMAT_Dir ' added to path'])
 
 
 msk_modellingDir  = [fileparts(OpenSimOutputToMAT_Dir) '\MSKmodelling'];
-<<<<<<< HEAD
 rmpath(genpath(msk_modellingDir))
-=======
-addpath(genpath(msk_modellingDir))
->>>>>>> df3281196be06f8b145733774e2302288045e768
 disp([msk_modellingDir ' added to path'])
 
 % --------------------------------------------------------------------------------------------------------------- %
@@ -128,13 +105,10 @@ S = struct;
 S.subjects = {getfolders(get_main_dir).name};
 S.sessions = {'\pre', '\post', ''};
 
-<<<<<<< HEAD
 % --------------------------------------------------------------------------------------------------------------- %
 function load_participant_characteristics()
 cd(get_main_dir)
 load('participants_characteristics.mat')
-=======
->>>>>>> df3281196be06f8b145733774e2302288045e768
 
 % --------------------------------------------------------------------------------------------------------------- %
 function [Results] = get_data_struct()
@@ -143,7 +117,6 @@ Results = struct;
 leg = {'right','left'};
 for i = 1:3
     for l = 1:numel(leg)
-<<<<<<< HEAD
         session = ['session' num2str(i)];
         Results.IK.(session).(leg{l}) = struct;
         Results.ID.(session).(leg{l}) = struct;
@@ -154,17 +127,6 @@ for i = 1:3
     end
 end
 
-=======
-        Results.IK.(['session' num2str(i)]).(leg{l}) = struct;
-        Results.ID.(['session' num2str(i)]).(leg{l}) = struct;
-        Results.SO.(['session' num2str(i)]).(leg{l}) = struct;
-        Results.SO_Activation.(['session' num2str(i)]).(leg{l}) = struct;
-        Results.JRL.(['session' num2str(i)]).(leg{l}) = struct;
-    end
-end
-
-
->>>>>>> df3281196be06f8b145733774e2302288045e768
 % --------------------------------------------------------------------------------------------------------------- %
 function Paths = get_data_paths(iSubj,iSess)
 
@@ -178,28 +140,17 @@ Paths.trials    = cellfun(@(c)[session_path fp c],trialNames,'uni',false);
 Paths.trialNames = trialNames;
 Paths.matResults = [fileparts(session_path) fp 'dataStruct_ErrorScores_no_trials_removed.mat'];
 
-<<<<<<< HEAD
-=======
-
-% --------------------------------------------------------------------------------------------------------------- %
-% function save_log()
-
->>>>>>> df3281196be06f8b145733774e2302288045e768
 % --------------------------------------------------------------------------------------------------------------- %
 function [raw,tnorm,results_struct] = time_norm_per_session(data_struct,results_struct)
 % data_struct = a struct similar to the output of load_sto_file
 
-<<<<<<< HEAD
 
 % add mass to results_struct AND remove "
 
-=======
->>>>>>> df3281196be06f8b145733774e2302288045e768
 trialNames = fields(data_struct);
 if contains(trialNames{1},'mass')
     trialNames(1) = [];
 end
-<<<<<<< HEAD
 
 % remove variables that contain calc
 variables  = fields(data_struct.(trialNames{1}));
@@ -209,16 +160,6 @@ variables = variables(~contains(variables,'calc'));
 raw   = struct; raw.left = struct; raw.right = struct;
 tnorm = struct; tnorm.left = struct; tnorm.right = struct;
 
-=======
-variables  = fields(data_struct.(trialNames{1}));
-variables = variables(~contains(variables,'calc')); % remove variables that contain calc
-
-
-raw   = struct; raw.left = struct; raw.right = struct;
-tnorm = struct; tnorm.left = struct; tnorm.right = struct;
-
-
->>>>>>> df3281196be06f8b145733774e2302288045e768
 % crete the full struct;
 for iVar = variables'
     raw.right.(iVar{1}) = [];
@@ -256,20 +197,12 @@ for iVar = variables'
     raw.left.(iVar{1})(raw.left.(iVar{1})==0) = NaN;
 end
 
-<<<<<<< HEAD
-=======
-
->>>>>>> df3281196be06f8b145733774e2302288045e768
 % mean tnorm data 
 for iVar = variables'
     tnorm.right.(iVar{1}) = mean(tnorm.right.(iVar{1}),2);
     tnorm.left.(iVar{1})  = mean(tnorm.left.(iVar{1}),2);
 end
 
-<<<<<<< HEAD
-=======
-
->>>>>>> df3281196be06f8b145733774e2302288045e768
 % add to results struct
 for iVar = variables'
     if ~isfield(results_struct.right,iVar{1})
@@ -287,9 +220,9 @@ for iVar = variables'
     end
 end
 
-<<<<<<< HEAD
 % --------------------------------------------------------------------------------------------------------------- %
 function Results = calculate_peaks(Results)
+
 
 Legs = {'right','left'};
 
@@ -300,11 +233,27 @@ for i = 1:3
 
         % find peak HCF
         Results.JRL.(session).(leg).HCF = sum3D(Results.JRL.(session).(leg), ['hip_' leg(1) '_on_pelvis_in_pelvis']);
-        Results.JRL.(session).(leg).peak_HCF = calc_max(Results.JRL.(session).(leg).HCF);
-        
+
+        lim1 = round(length(Results.JRL.(session).(leg).HCF)*0.08);
+        lim2 = round(length(Results.JRL.(session).(leg).HCF)*0.35);
+        lim3 = round(length(Results.JRL.(session).(leg).HCF)*0.8);
+
+        [Results.JRL.(session).(leg).peak_HCF_val(1,:), Results.JRL.(session).(leg).peak_HCF_loc(1,:)] = calc_max(Results.JRL.(session).(leg).HCF(lim1:lim2,:));
+        [Results.JRL.(session).(leg).peak_HCF_val(2,:), Results.JRL.(session).(leg).peak_HCF_loc(2,:)] = calc_max(Results.JRL.(session).(leg).HCF(lim2:lim3,:));
+        Results.JRL.(session).(leg).peak_HCF_loc(1,:) = Results.JRL.(session).(leg).peak_HCF_loc(1,:) + lim1-1;
+        Results.JRL.(session).(leg).peak_HCF_loc(2,:) = Results.JRL.(session).(leg).peak_HCF_loc(2,:) + lim2-1;
+
         % find peak KCF
         Results.JRL.(session).(leg).KCF = sum3D(Results.JRL.(session).(leg), ['knee_' leg(1) '_on_tibia_' leg(1) '_in_tibia_' leg(1)]);
-        Results.JRL.(session).(leg).peak_KCF = calc_max(Results.JRL.(session).(leg).KCF);
+
+        lim1 = round(length(Results.JRL.(session).(leg).KCF)*0.08);
+        lim2 = round(length(Results.JRL.(session).(leg).KCF)*0.3);
+        lim3 = round(length(Results.JRL.(session).(leg).KCF)*0.8);
+
+        [Results.JRL.(session).(leg).peak_KCF_val(1,:), Results.JRL.(session).(leg).peak_KCF_loc(1,:)] = calc_max(Results.JRL.(session).(leg).KCF(lim1:lim2,:));
+        [Results.JRL.(session).(leg).peak_KCF_val(2,:), Results.JRL.(session).(leg).peak_KCF_loc(2,:)] = calc_max(Results.JRL.(session).(leg).KCF(lim2:lim3,:));
+        Results.JRL.(session).(leg).peak_KCF_loc(1,:) = Results.JRL.(session).(leg).peak_KCF_loc(1,:) + lim1-1;
+        Results.JRL.(session).(leg).peak_KCF_loc(2,:) = Results.JRL.(session).(leg).peak_KCF_loc(2,:) + lim2-1;
 
         Muscles = fields(Results.SO.(session).(leg));
         for m = 1:length(Muscles)
@@ -324,9 +273,9 @@ z = Results_substruct.([variable '_fz']);
 out = sqrt(x.^2 + y.^2 + z.^2);
 
 %------------------ calc max moving average 
-function out = calc_max(time_curve)
+function [val,loc] = calc_max(time_curve)
 
-out = max(movmean(time_curve,5));
+[val, loc] = max(movmean(time_curve,3));
 
 % --------------------------------------------------------------------------------------------------------------- %
 function folders = getfolders(directory, contianing_string, IgnoreCase)
@@ -445,6 +394,159 @@ for col = 1: size (Data,2)
     
     TimeNormalizedData(1:101,col)= interp1(timeTrial,currentData,Tnorm)';
 end
-=======
 
->>>>>>> df3281196be06f8b145733774e2302288045e768
+% --------------------------------------------------------------------------------------------- %
+function [ha, pos,FirstCol,LastRow,LastCol] = tight_subplotBG(Nh, Nw, gap, marg_h, marg_w,Size)
+% tight_subplot creates "subplot" axes with adjustable gaps and margins
+%
+% [ha, pos, FirstCol, LastRow] = tight_subplot(Nh, Nw, gap, marg_h, marg_w,Size)
+%
+%   in:  Nh      number of axes in hight (vertical direction)
+%        Nw      number of axes in width (horizontaldirection)
+%        gap     gaps between the axes in normalized units (0...1)
+%                   or [gap_h gap_w] for different gaps in height and width 
+%        marg_h  margins in height in normalized units (0...1)
+%                   or [lower upper] for different lower and upper margins 
+%        marg_w  margins in width in normalized units (0...1)
+%                   or [left right] for different left and right margins 
+%       Size     4 dimesions of the figure to be plotted. 
+%                Size == 0 -> make full size figure
+%                Size > 0 (eg 0.4) ->  make size figure 0.4 times full size
+%
+%  out:  ha     array of handles of the axes objects
+%                   starting from upper left corner, going row-wise as in
+%                   subplot
+%        pos    positions of the axes objects
+%
+%  Example: ha = tight_subplotBG(3,2,[.01 .03],[.1 .01],[.01 .01],[100 200 1200 600])
+%           for ii = 1:6; axes(ha(ii)); plot(randn(10,ii)); end
+%           set(ha(1:4),'XTickLabel',''); set(ha,'YTickLabel','')
+% Pekka Kumpulainen 21.5.2012   @tut.fi
+% Tampere University of Technology / Automation Science and Engineering
+% 
+% Edited by Basilio Goncalves (2021) 
+% see also: numSubplots
+
+if nargin < 2 || Nw==0
+    RemoveSubPlots  = 1; 
+    LastPlot        = Nh; 
+    [N,]            = numSubplots(Nh); 
+    Nh              = N(1);
+    Nw              = N(2);
+else 
+    RemoveSubPlots  = 0;
+    LastPlot        = Nh*Nw;
+end
+
+
+if nargin<3 || isempty(gap); gap = .04; end
+if nargin<4 || isempty(marg_h); marg_h = .04; end
+if nargin<5 || isempty(marg_w); marg_w = .04; end
+if numel(gap)==1;
+    gap = [gap gap];
+end
+if numel(marg_w)==1; 
+    marg_w = [marg_w marg_w];
+end
+if numel(marg_h)==1; 
+    marg_h = [marg_h marg_h];
+end
+figure 
+axh = (1-sum(marg_h)-(Nh-1)*gap(1))/Nh; 
+axw = (1-sum(marg_w)-(Nw-1)*gap(2))/Nw;
+py = 1-marg_h(2)-axh; 
+% ha = zeros(Nh*Nw,1);
+ii = 0;
+for ih = 1:Nh
+    px = marg_w(1);
+    
+    for ix = 1:Nw
+        ii = ii+1;
+        ha(ii) = axes('Units','normalized', ...
+            'Position',[px py axw axh], ...
+            'XTickLabel','', ...
+            'YTickLabel','');
+        px = px+axw+gap(2);
+    end
+    py = py-axh-gap(1);
+end
+if nargout > 1
+    pos = get(ha,'Position');
+end
+ha = ha(:);
+
+if nargin<6 || length(Size)==1 && Size == 0 || length(Size)==1 && Size > 1
+    set(gcf,'units','normalized','outerposition',[0 0.05 1 0.95])
+elseif length(Size)<3 && Size>0 
+    dimensions = [1*Size 0.95*Size];
+    origin = (0 +(1-dimensions))/2;
+    set(gcf,'units','normalized','outerposition',[origin dimensions])
+elseif length(Size)==4 && ~any(Size>1) 
+    set(gcf,'units','normalized','outerposition',[Size])
+else
+    set(gcf, 'Position', Size); 
+end
+
+FirstCol = 1:Nw:LastPlot; LastRow = Nh*Nw-Nw+1:Nh*Nw; LastCol = Nw:Nw:LastPlot;
+
+if RemoveSubPlots~=0
+    delete(ha(LastPlot+1:end));
+    ha(LastPlot+1:end) =[];
+    LastRow = ceil(LastPlot/Nw);
+    LastRow = LastRow*Nw-Nw+1 : LastPlot;
+end
+
+% ------------------------------------------------------------------------- %
+function [p,n]=numSubplots(n)
+% function [p,n]=numSubplots(n)
+%
+% Purpose
+% Calculate how many rows and columns of sub-plots are needed to
+% neatly display n subplots. 
+%
+% Inputs
+% n - the desired number of subplots.     
+%  
+% Outputs
+% p - a vector length 2 defining the number of rows and number of
+%     columns required to show n plots.     
+% [ n - the current number of subplots. This output is used only by
+%       this function for a recursive call.]
+%
+%
+%
+% Example: neatly lay out 13 sub-plots
+% >> p=numSubplots(13)
+% p = 
+%     3   5
+% for i=1:13; subplot(p(1),p(2),i), pcolor(rand(10)), end 
+%
+%
+% Rob Campbell - January 2010
+   
+    
+while isprime(n) & n>4, 
+    n=n+1;
+end
+p=factor(n);
+if length(p)==1
+    p=[1,p];
+    return
+end
+while length(p)>2
+    if length(p)>=4
+        p(1)=p(1)*p(end-1);
+        p(2)=p(2)*p(end);
+        p(end-1:end)=[];
+    else
+        p(1)=p(1)*p(2);
+        p(2)=[];
+    end    
+    p=sort(p);
+end
+%Reformat if the column/row ratio is too large: we want a roughly
+%square design 
+while p(2)/p(1)>2.5
+    N=n+1;
+    [p,n]=numSubplots(N); %Recursive!
+end
