@@ -1,7 +1,5 @@
 
 function stats_Kira()
-
-
 add_repos_to_path
 [Results] = get_data_struct; 
 S = get_subjects;
@@ -11,7 +9,7 @@ run_stats = true;
 
 %% organise data in struct 
 if gather_data_in_struct
-    Vars = {'IK','ID','SO','SO_Activation','JRL'};
+    Analyses = {'IK','ID','SO','SO_Activation','JRL'};
     for iSubj = 1:length(S.subjects)
         for iSess = 1:length(S.sessions)
 
@@ -23,34 +21,36 @@ if gather_data_in_struct
 
             load(Paths.matResults)
 
-            for iVar = 1:length(Vars)
-                curr_var = Vars{iVar};
-                data_struct = data.(curr_var).FINAL_PERSONALISEDTORSIONS_scaled_final;
-                results_struct = Results.(curr_var).(['session' num2str(iSess)]);
-                [raw,tnorm,results_struct] = time_norm_per_session(data_struct,results_struct);
+            for iAnal = 1:length(Analyses)
+                curr_analysis = Analyses{iAnal};
+                data_struct = data.(curr_analysis).FINAL_PERSONALISEDTORSIONS_scaled_final;
+                results_struct = Results.(curr_analysis).(['session' num2str(iSess)]);
 
-                Results.(curr_var).(['session' num2str(iSess)]) = results_struct;
+                [raw,tnorm,results_struct] = time_norm_per_session(data_struct,results_struct);  % add all participants to the results struct and time normalise data
 
-            end
-        end
-    end
+                Results.(curr_analysis).(['session' num2str(iSess)]) = results_struct;
+
+            end % analysis
+        end % session
+    end % subjects
     cd(get_main_dir)
     save('results.mat', 'Results')
-end
+end % if gather 
 
 %% stats
 if run_stats
     load([get_main_dir fp 'results.mat'])
     
-    Results = calculate_peaks(Results);
+    Results = calculate_peaks(Results);                                                                             
+
     load_participant_characteristics()
 
-    x = Results.JRL.session1.left.peak_HCF';
-    y = Results.JRL.session1.right.peak_HCF';
-    [rsquared,pvalue, p1,rlo,rup] = plotCorr (x,y,1,0.05);
+%     x = Results.JRL.session1.left.peak_HCF';
+%     y = Results.JRL.session1.right.peak_HCF';
+%     [rsquared,pvalue, p1,rlo,rup] = plotCorr (x,y,1,0.05);  
+    
+    plot_muscle_forces(Results)
 
-   
-  
 
 end
 
@@ -68,10 +68,23 @@ OpenSimOutputToMAT_Dir = fileparts(activeFile);
 addpath(genpath(OpenSimOutputToMAT_Dir))
 disp([OpenSimOutputToMAT_Dir ' added to path'])
 
+msk_modellingDir = [fileparts(OpenSimOutputToMAT_Dir) '\MSKmodelling'];
+if isinpath(msk_modellingDir)
+    rmpath(genpath(msk_modellingDir))
+    disp([msk_modellingDir ' added to path'])
+end
 
-msk_modellingDir  = [fileparts(OpenSimOutputToMAT_Dir) '\MSKmodelling'];
-rmpath(genpath(msk_modellingDir))
-disp([msk_modellingDir ' added to path'])
+function out = isinpath(directory)
+
+% Use the which function to check if the directory is in the path
+fullPath = which(directory);
+
+% Check if the fullPath is empty to determine if the directory is in the path
+if isempty(fullPath)
+    out = false;
+else
+    out = tue;
+end
 
 % --------------------------------------------------------------------------------------------------------------- %
 function data_path = get_main_dir()
@@ -356,3 +369,355 @@ for col = 1: size (Data,2)
     
     TimeNormalizedData(1:101,col)= interp1(timeTrial,currentData,Tnorm)';
 end
+
+% --------------------------------------------------------------------------------------------------------------- %
+% ---------------------------------------- PLOTTING FUNCTIONS --------------------------------------------------- %
+% --------------------------------------------------------------------------------------------------------------- %
+function plot_muscle_forces(Results)
+
+
+legs = {'left','right'};
+for iLeg = 1:2
+    leg = legs{iLeg};
+    muscle_forces = Results.SO.session1.left;
+    muscle_names = fields(muscle_forces);
+    muscle_names = muscle_names(endsWith(muscle_names,['_' leg(end)]));                                             % left side muscles
+    muscle_names = muscle_names(~contains(muscle_names,'peak_'));                                                   % remove peaks
+    line_colors = get_color('viridis',3);
+
+    muscle_names_short = {};                                                                                        % remove '_l' or '_r' and numbers from the muscle names
+    for iMusc = 1:length(muscle_names)
+        muscle_names_short{end+1,1} = muscle_names{iMusc}(1:end-2);
+        if any(contains(muscle_names_short{end}(end),{'1','2','3'}))
+            muscle_names_short{end} = muscle_names_short{end}(1:end-1);
+        end
+    end
+    muscle_names_short = unique(muscle_names_short);
+
+    n_subplots = length(muscle_names_short);
+    [ha, ~,FirstCol,LastRow,~] = tight_subplot(n_subplots,0,[0.005 0.01],[0.05 0.02],[],0.99);                   % create figure with subplots
+    for iSess = 1:3
+        session = ['session' num2str(iSess)];
+        muscle_forces = Results.SO.(session).(leg);
+        for iMusc = 1:length(muscle_names_short)
+            axes(ha(iMusc)); hold on
+            current_muscle = muscle_names_short{iMusc};
+            segments = muscle_names(contains(muscle_names,current_muscle));                                         % get all muscle segments for each muscle name
+            single_muscle_forces = muscle_forces.(segments{1});
+            for iSeg = 2:length(segments)
+                single_muscle_forces = single_muscle_forces + muscle_forces.(segments{iSeg});                       % sum the muscle forces for each segment (for each column /trial)
+            end
+            M = mean(single_muscle_forces,2);
+            SD = std(single_muscle_forces,0,2);
+            p = plotShadedSD(M,SD,line_colors(iSess,:));                                                            % plot mean and SD
+            title(current_muscle)
+
+        end
+    end
+    tight_subplot_ticks (ha,LastRow,FirstCol)                                                                           % add ticks to the plots
+    suptitle(['muscle forces ' leg])
+    mmfn
+    axes(ha(iMusc))
+end
+
+% --------------------------------------------------------------------------------------------------------------- %
+function p = plotShadedSD(YData,SD,COLOR,Xvalues)
+% plot each column on the Mean matrix with each column on the SD matrix
+
+if size(YData,2)~=size(SD,2)
+    error('Number of columans in Mean and SD inputs must agree')
+end
+
+% [ cMat, cStruct, cNames] = getColorSet(30); % color blind friendly
+if nargin<3 || isempty(COLOR)
+    cMat = get_color(0,size(YData,2)); % color scheme 2 (Bas)
+else
+    cMat = COLOR;
+end
+%line styles
+style = {'-','--',':','-.'};
+for k = 1:ceil(size(YData,2)/4)
+    style = [style style];
+end
+
+for ii = 1:size(YData,2)
+    hold on
+    y1=YData(:,ii)';                             % create main curve
+    if nargin <4
+        x=1:length(y1);                             % initialize x row vector
+    else
+        x = Xvalues';
+    end
+
+    p(ii) = plot(x,y1,'LineWidth',1);
+    set(p(ii),'Color',cMat(ii,:),'LineStyle',style{ii})
+    color = p(ii).Color;
+
+    Top= y1+SD(:,ii)';                          % create top of shaed area
+    Bottom = y1-SD(:,ii)';                      % create bottom of shaded
+    X=[x,fliplr(x)];                            % create continuous x value array for plotting
+    Y=[Bottom fliplr(Top)];                     % create y values for out and then back
+    f1 = fill(X,Y,color);
+    alpha 0.3
+    set(f1,'FaceColor', color,'EdgeColor','none')
+
+end
+
+% --------------------------------------------------------------------------------------------------------------- %
+function [ha, pos,FirstCol,LastRow,LastCol] = tight_subplot(Nh, Nw, gap, marg_h, marg_w,Size)
+% tight_subplot creates "subplot" axes with adjustable gaps and margins
+%
+% [ha, pos, FirstCol, LastRow] = tight_subplot(Nh, Nw, gap, marg_h, marg_w,Size)
+%
+%   in:  Nh      number of axes in hight (vertical direction)
+%        Nw      number of axes in width (horizontaldirection)
+%        gap     gaps between the axes in normalized units (0...1)
+%                   or [gap_h gap_w] for different gaps in height and width 
+%        marg_h  margins in height in normalized units (0...1)
+%                   or [lower upper] for different lower and upper margins 
+%        marg_w  margins in width in normalized units (0...1)
+%                   or [left right] for different left and right margins 
+%       Size     4 dimesions of the figure to be plotted. 
+%                Size == 0 -> make full size figure
+%                Size > 0 (eg 0.4) ->  make size figure 0.4 times full size
+%
+%  out:  ha     array of handles of the axes objects
+%                   starting from upper left corner, going row-wise as in
+%                   subplot
+%        pos    positions of the axes objects
+%
+%  Example: ha = tight_subplotBG(3,2,[.01 .03],[.1 .01],[.01 .01],[100 200 1200 600])
+%           for ii = 1:6; axes(ha(ii)); plot(randn(10,ii)); end
+%           set(ha(1:4),'XTickLabel',''); set(ha,'YTickLabel','')
+% Pekka Kumpulainen 21.5.2012   @tut.fi
+% Tampere University of Technology / Automation Science and Engineering
+% 
+% Edited by Basilio Goncalves (2021) 
+% see also: numSubplots
+
+if nargin < 2 || Nw==0
+    RemoveSubPlots  = 1; 
+    LastPlot        = Nh; 
+    [N,]            = numSubplots(Nh); 
+    Nh              = N(1);
+    Nw              = N(2);
+else 
+    RemoveSubPlots  = 0;
+    LastPlot        = Nh*Nw;
+end
+
+
+if nargin<3 || isempty(gap); gap = .04; end
+if nargin<4 || isempty(marg_h); marg_h = .04; end
+if nargin<5 || isempty(marg_w); marg_w = .04; end
+if numel(gap)==1;
+    gap = [gap gap];
+end
+if numel(marg_w)==1; 
+    marg_w = [marg_w marg_w];
+end
+if numel(marg_h)==1; 
+    marg_h = [marg_h marg_h];
+end
+figure 
+axh = (1-sum(marg_h)-(Nh-1)*gap(1))/Nh; 
+axw = (1-sum(marg_w)-(Nw-1)*gap(2))/Nw;
+py = 1-marg_h(2)-axh; 
+% ha = zeros(Nh*Nw,1);
+ii = 0;
+for ih = 1:Nh
+    px = marg_w(1);
+    
+    for ix = 1:Nw
+        ii = ii+1;
+        ha(ii) = axes('Units','normalized', ...
+            'Position',[px py axw axh], ...
+            'XTickLabel','', ...
+            'YTickLabel','');
+        px = px+axw+gap(2);
+    end
+    py = py-axh-gap(1);
+end
+if nargout > 1
+    pos = get(ha,'Position');
+end
+ha = ha(:);
+
+if nargin<6 || length(Size)==1 && Size == 0 || length(Size)==1 && Size > 1
+    set(gcf,'units','normalized','outerposition',[0 0.05 1 0.95])
+elseif length(Size)<3 && Size>0 
+    dimensions = [1*Size 0.95*Size];
+    origin = (0 +(1-dimensions))/2;
+    set(gcf,'units','normalized','outerposition',[origin dimensions])
+elseif length(Size)==4 && ~any(Size>1) 
+    set(gcf,'units','normalized','outerposition',[Size])
+else
+    set(gcf, 'Position', Size); 
+end
+
+FirstCol = 1:Nw:LastPlot; LastRow = Nh*Nw-Nw+1:Nh*Nw; LastCol = Nw:Nw:LastPlot;
+
+if RemoveSubPlots~=0
+    delete(ha(LastPlot+1:end));
+    ha(LastPlot+1:end) =[];
+    LastRow = ceil(LastPlot/Nw);
+    LastRow = LastRow*Nw-Nw+1 : LastPlot;
+end
+
+% --------------------------------------------------------------------------------------------------------------- %
+function [cMat,LineStyles,Marker] = get_color (pallet_name,nColors)
+
+if nColors>163
+   error('colorBG function only works for n2 =<63') 
+end
+
+if nargin < 1
+    cMat = convertRGB([176, 104, 16; ...
+        16, 157, 176; ...
+        136, 16, 176;176,...
+        16, 109;31, 28, 28]);  % color scheme 2 (Bas)
+else
+   
+    switch pallet_name
+
+        case 'prism';   cMat = prism;
+        case 'parula';  cMat = parula;
+        case 'flag';    cMat = flag;
+        case 'hsv';     cMat = hsv;
+        case 'hot';     cMat = hot;
+        case 'cool';    cMat = cool;
+        case 'spring';  cMat = spring;
+        case 'summer';  cMat = summer;
+        case 'autumn';  cMat = autumn;
+        case 'winter';  cMat = winter;
+        case 'gray';    cMat = gray;
+        case 'bone';    cMat = bone;
+        case 'copper';  cMat = copper;
+        case 'pink';    cMat = pink;
+        case 'lines';   cMat = lines;
+        case 'jet';     cMat = jet;
+        case 'colorcube';cMat = colorcube;
+        case 'viridis'; cMat = viridis; 
+    end
+    warning off
+    if nargin == 2
+        if nColors>163; error('colorBG function only works for n2 =<63'); end
+        cMat = cMat(1:length(cMat)/nColors:length(cMat),:);
+    else
+        cMat = cMat([1:64],:);
+    end
+        
+    warning on
+end
+
+S = sum(cMat,2);
+Duplicates = [];
+commonLS = {'-' '--' ':' '-.'};
+commonMK = {'none' '+' 's' 'd' '^' 'v'};
+N = length(commonMK);
+LineStyles ={};Marker ={};
+for k = 1:size(cMat,1)
+    idx = find(S==S(k));
+     if length(idx)==1
+        LineStyles{k,1} = commonLS{1};
+        Marker{k,1} = commonMK{1};
+    else
+    if length(idx)/N~= ceil(length(idx)/N)
+        idx(end+1:ceil(length(idx)/N)*N)=NaN;
+    end
+    idx = reshape(idx,N,[]);
+        for col = 1:size(idx,2)
+            for row = 1:size(idx,1)
+                if ~isnan(idx(row,col))
+                    LineStyles{idx(row,col),1} = commonLS{col};
+                    Marker{idx(row,col),1} = commonMK{row};
+                end
+            end
+        end
+    end
+    idx = reshape(idx,[],1);idx(isnan(idx))=[];
+    S(idx) = NaN;
+    Duplicates(idx,1)=k;
+end
+
+% --------------------------------------------------------------------------------------------------------------- %
+function tight_subplot_ticks (ha,xt,yt)
+% tight_subplot_ticks adds xticklabels and yticklables to the assigned
+% subplots in "ha" (if xt OR yt == 1, add labels to all subplots)
+% 
+% tight_subplot_ticks (ha,xt,yt)
+% xt = index of subplots to add xticks to
+% yt = index of subplots to add yticks to
+%
+% see also tight_subplotBG
+
+N = length(ha);
+for i = 1:N
+    axes(ha(i));
+    if any(xt==i) || any(xt==0)
+        xticklabels(xticks)
+    else 
+        xticklabels('')
+    end
+    
+    if any(yt==i) || any(yt==0)
+        yticklabels(yticks)
+    else 
+        yticklabels('')
+    end
+end
+
+% --------------------------------------------------------------------------------------------------------------- %
+function mmfn(xlb,ylb) % make my figure nice
+
+set(gcf,'Color',[1 1 1]);
+grid off
+fig=gcf;
+N =  length(fig.Children);
+for ii = 1:N
+    set(fig.Children(ii),'box', 'off')
+    if contains(class(fig.Children(ii)),'Axes')
+        fig.Children(ii).FontName = 'Times New Roman';
+        fig.Children(ii).Title.FontWeight = 'Normal';
+        fig.Children(ii).FontSize = 14;
+        
+        for ax = 1:length(fig.Children(ii).Children)
+            if contains(class(fig.Children(ii).Children(ax)),'matlab.graphics.chart.primitive.Line')
+                fig.Children(ii).Children(ax).LineWidth = 2;
+            elseif contains(class(fig.Children(ii).Children(ax)),'matlab.graphics.chart.primitive.Bar')
+%                 fig.Children(ii).Children(ax).EdgeColor = 'k';
+            end
+        end
+    end
+end
+
+if nargin>0
+    xlabel(xlb)
+end
+
+if nargin>1
+    ylabel(ylb)
+end
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
