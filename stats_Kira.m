@@ -43,12 +43,13 @@ end
 if run_stats
     load([get_main_dir fp 'results.mat'])
     
-    Results = calculate_peaks(Results);
+    Results = calculate_peaks(Results);                                                                             
+
     load_participant_characteristics()
 
     x = Results.JRL.session1.left.peak_HCF';
     y = Results.JRL.session1.right.peak_HCF';
-    [rsquared,pvalue, p1,rlo,rup] = plotCorr (x,y,1,0.05);
+    [rsquared,pvalue, p1,rlo,rup] = plotCorr (x,y,1,0.05);  
 
    
   
