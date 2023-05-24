@@ -1,12 +1,10 @@
 
 function stats_Kira()
-
-
 add_repos_to_path
 [Results] = get_data_struct; 
 S = get_subjects;
 
-<<<<<<< HEAD
+
 gather_data_in_struct = true;
 run_stats = true;
 
@@ -52,55 +50,16 @@ if run_stats
     y = Results.JRL.session1.right.peak_HCF';
     [rsquared,pvalue, p1,rlo,rup] = plotCorr (x,y,1,0.05);  
 
-   
-  
-
 end
-=======
-Vars = {'IK','ID','SO','SO_Activation','JRL'};
-
-%% organise data in struct 
-for iSubj = 1:length(S.subjects)
-    for iSess = 1:length(S.sessions)
-        
-        Paths = get_data_paths(iSubj,iSess);
-        if ~isfolder(Paths.session)
-            disp([Paths.session ' does not exist'])
-            continue
-        end
-        
-        load(Paths.matResults)
-         
-        for iVar = 1:length(Vars)
-            curr_var = Vars{iVar};
-            data_struct = data.(curr_var).FINAL_PERSONALISEDTORSIONS_scaled_final;
-            results_struct = Results.(curr_var).(['session' num2str(iSess)]);
-            [raw,tnorm,results_struct] = time_norm_per_session(data_struct,results_struct);
-            
-            Results.(curr_var).(['session' num2str(iSess)]) = results_struct;
-
-        end       
-    end
-end
-
-cd(get_main_dir)
-save('results.mat', 'Results')
-
-%% stats
-% raw_data_r = sqrt(data_fx.^2 + data_fy.^2 + data_fz.^2); % resultant force
-
->>>>>>> df3281196be06f8b145733774e2302288045e768
 
 %% -------------------------------------------------------------------------------------------------------------- %
 % ---------------------------------------------------- FUCNTIONS ------------------------------------------------ %
 % --------------------------------------------------------------------------------------------------------------- %
-<<<<<<< HEAD
+
 function out  = fp
 out  = filesep;
 
 % --------------------------------------------------------------------------------------------------------------- %
-=======
->>>>>>> df3281196be06f8b145733774e2302288045e768
 function add_repos_to_path
 activeFile = [mfilename('fullpath') '.m'];
 
@@ -110,11 +69,11 @@ disp([OpenSimOutputToMAT_Dir ' added to path'])
 
 
 msk_modellingDir  = [fileparts(OpenSimOutputToMAT_Dir) '\MSKmodelling'];
-<<<<<<< HEAD
+
 rmpath(genpath(msk_modellingDir))
-=======
+
 addpath(genpath(msk_modellingDir))
->>>>>>> df3281196be06f8b145733774e2302288045e768
+
 disp([msk_modellingDir ' added to path'])
 
 % --------------------------------------------------------------------------------------------------------------- %
@@ -128,13 +87,11 @@ S = struct;
 S.subjects = {getfolders(get_main_dir).name};
 S.sessions = {'\pre', '\post', ''};
 
-<<<<<<< HEAD
+
 % --------------------------------------------------------------------------------------------------------------- %
 function load_participant_characteristics()
 cd(get_main_dir)
 load('participants_characteristics.mat')
-=======
->>>>>>> df3281196be06f8b145733774e2302288045e768
 
 % --------------------------------------------------------------------------------------------------------------- %
 function [Results] = get_data_struct()
@@ -143,7 +100,7 @@ Results = struct;
 leg = {'right','left'};
 for i = 1:3
     for l = 1:numel(leg)
-<<<<<<< HEAD
+
         session = ['session' num2str(i)];
         Results.IK.(session).(leg{l}) = struct;
         Results.ID.(session).(leg{l}) = struct;
@@ -154,7 +111,7 @@ for i = 1:3
     end
 end
 
-=======
+
         Results.IK.(['session' num2str(i)]).(leg{l}) = struct;
         Results.ID.(['session' num2str(i)]).(leg{l}) = struct;
         Results.SO.(['session' num2str(i)]).(leg{l}) = struct;
@@ -163,8 +120,6 @@ end
     end
 end
 
-
->>>>>>> df3281196be06f8b145733774e2302288045e768
 % --------------------------------------------------------------------------------------------------------------- %
 function Paths = get_data_paths(iSubj,iSess)
 
@@ -178,28 +133,20 @@ Paths.trials    = cellfun(@(c)[session_path fp c],trialNames,'uni',false);
 Paths.trialNames = trialNames;
 Paths.matResults = [fileparts(session_path) fp 'dataStruct_ErrorScores_no_trials_removed.mat'];
 
-<<<<<<< HEAD
-=======
-
 % --------------------------------------------------------------------------------------------------------------- %
 % function save_log()
 
->>>>>>> df3281196be06f8b145733774e2302288045e768
+
 % --------------------------------------------------------------------------------------------------------------- %
 function [raw,tnorm,results_struct] = time_norm_per_session(data_struct,results_struct)
 % data_struct = a struct similar to the output of load_sto_file
 
-<<<<<<< HEAD
-
 % add mass to results_struct AND remove "
-
-=======
->>>>>>> df3281196be06f8b145733774e2302288045e768
 trialNames = fields(data_struct);
 if contains(trialNames{1},'mass')
     trialNames(1) = [];
 end
-<<<<<<< HEAD
+
 
 % remove variables that contain calc
 variables  = fields(data_struct.(trialNames{1}));
@@ -209,7 +156,6 @@ variables = variables(~contains(variables,'calc'));
 raw   = struct; raw.left = struct; raw.right = struct;
 tnorm = struct; tnorm.left = struct; tnorm.right = struct;
 
-=======
 variables  = fields(data_struct.(trialNames{1}));
 variables = variables(~contains(variables,'calc')); % remove variables that contain calc
 
@@ -218,7 +164,7 @@ raw   = struct; raw.left = struct; raw.right = struct;
 tnorm = struct; tnorm.left = struct; tnorm.right = struct;
 
 
->>>>>>> df3281196be06f8b145733774e2302288045e768
+
 % crete the full struct;
 for iVar = variables'
     raw.right.(iVar{1}) = [];
@@ -256,20 +202,12 @@ for iVar = variables'
     raw.left.(iVar{1})(raw.left.(iVar{1})==0) = NaN;
 end
 
-<<<<<<< HEAD
-=======
-
->>>>>>> df3281196be06f8b145733774e2302288045e768
 % mean tnorm data 
 for iVar = variables'
     tnorm.right.(iVar{1}) = mean(tnorm.right.(iVar{1}),2);
     tnorm.left.(iVar{1})  = mean(tnorm.left.(iVar{1}),2);
 end
 
-<<<<<<< HEAD
-=======
-
->>>>>>> df3281196be06f8b145733774e2302288045e768
 % add to results struct
 for iVar = variables'
     if ~isfield(results_struct.right,iVar{1})
@@ -287,7 +225,6 @@ for iVar = variables'
     end
 end
 
-<<<<<<< HEAD
 % --------------------------------------------------------------------------------------------------------------- %
 function Results = calculate_peaks(Results)
 
@@ -445,6 +382,3 @@ for col = 1: size (Data,2)
     
     TimeNormalizedData(1:101,col)= interp1(timeTrial,currentData,Tnorm)';
 end
-=======
-
->>>>>>> df3281196be06f8b145733774e2302288045e768
