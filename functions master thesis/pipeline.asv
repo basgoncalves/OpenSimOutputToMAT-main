@@ -2,10 +2,6 @@ clear all; close all;
 clc;
 activate_msk_modelling
 
-filePath = matlab.desktop.editor.getActiveFilename;
-OpenSimToMatDir = fileparts(fileparts(filePath));
-addpath(genpath(OpenSimToMatDir))
-
 % add: choose data to plot, choose std/all trials
 
 %% individual data to be changed before every run
@@ -377,21 +373,21 @@ end
 %% 
 filePath = matlab.desktop.editor.getActiveFilename;
 fileDir = fileparts(filePath);
-kiraDataDir = [fileparts(fileparts(fileDir)) '\Kira_MSc_data'];
-paths = {[kiraDataDir '\P01\pre\output automization'];
-          [kiraDataDir '\P01\post\output automization'];
-          [kiraDataDir '\P02\pre\output automization'];
-          [kiraDataDir '\P02\post\output automization'];
-          [kiraDataDir '\P03\pre\output automization'];
-          [kiraDataDir '\P03\post\output automization'];
-          [kiraDataDir '\P04\pre\output automization'];
-          [kiraDataDir '\P04\post\output automization'];
-          [kiraDataDir '\P05\pre\output automization'];
-          [kiraDataDir '\P05\post\output automization'];
-          [kiraDataDir '\TD01\output automization'];
-          [kiraDataDir '\TD04\output automization'];
-          [kiraDataDir '\TD06\output automization'];
-          [kiraDataDir '\TD07\output automization']};
+kiraDataDir = [fileparts(fileparts(fileDir)) '\Kira']
+paths = {'C:\Users\Balu\Nextcloud\Documents\MA\Daten\P01\pre\output automization';
+          'C:\Users\Balu\Nextcloud\Documents\MA\Daten\P01\post\output automization';
+          'C:\Users\Balu\Nextcloud\Documents\MA\Daten\P02\pre\output automization';
+          'C:\Users\Balu\Nextcloud\Documents\MA\Daten\P02\post\output automization';
+          'C:\Users\Balu\Nextcloud\Documents\MA\Daten\P03\pre\output automization';
+          'C:\Users\Balu\Nextcloud\Documents\MA\Daten\P03\post\output automization';
+          'C:\Users\Balu\Nextcloud\Documents\MA\Daten\P04\pre\output automization';
+          'C:\Users\Balu\Nextcloud\Documents\MA\Daten\P04\post\output automization';
+          'C:\Users\Balu\Nextcloud\Documents\MA\Daten\P05\pre\output automization';
+          'C:\Users\Balu\Nextcloud\Documents\MA\Daten\P05\post\output automization';
+          'C:\Users\Balu\Nextcloud\Documents\MA\Daten\TD01\output automization';
+          'C:\Users\Balu\Nextcloud\Documents\MA\Daten\TD04\output automization';
+          'C:\Users\Balu\Nextcloud\Documents\MA\Daten\TD06\output automization';
+          'C:\Users\Balu\Nextcloud\Documents\MA\Daten\TD07\output automization';};
 
 for i = 1:length(paths)
     outputPath = paths{i};
@@ -399,19 +395,19 @@ for i = 1:length(paths)
 end
 
 
-stoFile = [kiraDataDir '\P03\post\output automization\FINAL_PERSONALISEDTORSIONS_scaled_final\Dynamic08\Output\SO\_StaticOptimization_force.sto'];
-forces = load_sto_file(stoFile);    
+
+
 
 
 
 figure;plot(data.IK.FINAL_PERSONALISEDTORSIONS_scaled_final.T_Dynamic08_1_right.ankle_angle_r)
 
 % trial that starts at 1 on c3d
-stoFile = [kiraDataDir '\P03\post\output automization\FINAL_PERSONALISEDTORSIONS_scaled_final\Dynamic08\Output\IK\IK.mot'];
+stoFile = 'C:\Users\Balu\Nextcloud\Documents\MA\Daten\P03\post\output automization\FINAL_PERSONALISEDTORSIONS_scaled_final\Dynamic08\Output\IK\IK.mot';
 frame_first_c3d_in_openSim_frame = get_frame_zero(stoFile);
 
 % trial that first event - initial frame < intial frame
-stoFile = [kiraDataDir '\P01\post\output automization\FINAL_PERSONALISEDTORSIONS_scaled_final\Dynamic08\Output\IK\IK.mot'];
+stoFile = 'C:\Users\Balu\Nextcloud\Documents\MA\Daten\P01\post\output automization\FINAL_PERSONALISEDTORSIONS_scaled_final\Dynamic08\Output\IK\IK.mot';
 frame_first_c3d_in_openSim_frame = get_frame_zero(stoFile);
 
 
