@@ -399,8 +399,17 @@ for i = 1:length(paths)
 end
 
 
-stoFile = [kiraDataDir '\P03\post\output automization\FINAL_PERSONALISEDTORSIONS_scaled_final\Dynamic08\Output\SO\_StaticOptimization_force.sto'];
+
+subject = 'TD01';
+simulationDri = [kiraDataDir '\' subject '\post\output automization\FINAL_PERSONALISEDTORSIONS_scaled_final\'];
+stoFile = [kiraDataDir '\' subject '\post\output automization\FINAL_PERSONALISEDTORSIONS_scaled_final\Dynamic08\Output\SO\_StaticOptimization_force.sto'];
 forces = load_sto_file(stoFile);    
+
+
+load([kiraDataDir '\' subject '\output automization\dataStruct_ErrorScores_no_trials_removed.mat'])
+trial_list = fields(data.SO.FINAL_PERSONALISEDTORSIONS_scaled_final);
+data.SO.FINAL_PERSONALISEDTORSIONS_scaled_final.(trial_list{2})
+data.SO.FINAL_PERSONALISEDTORSIONS_scaled_final.(trial_list{2}).ercspn_l
 
 
 

@@ -136,7 +136,7 @@ for i = 1:3
     end
 end
 
-S = get_subjects;
+S = 
 Analyses = {'IK','ID','SO','SO_Activation','JRL'};
 for iSubj = 1:length(S.subjects)
     for iSess = 1:length(S.sessions)
