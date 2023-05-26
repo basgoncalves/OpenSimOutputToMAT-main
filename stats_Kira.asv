@@ -50,6 +50,15 @@ end
 if run_stats
 
     load([get_main_dir fp 'results.mat'])
+      Results = calculate_peaks(Results);                                                                             
+
+    load_participant_characteristics()
+
+%     x = Results.JRL.session1.left.peak_HCF';
+%     y = Results.JRL.session1.right.peak_HCF';
+%     [rsquared,pvalue, p1,rlo,rup] = plotCorr (x,y,1,0.05);  
+    
+    plot_muscle_forces(Results)
     
 end
 
@@ -136,7 +145,7 @@ for i = 1:3
     end
 end
 
-S = 
+S = get_subjects;
 Analyses = {'IK','ID','SO','SO_Activation','JRL'};
 for iSubj = 1:length(S.subjects)
     for iSess = 1:length(S.sessions)
