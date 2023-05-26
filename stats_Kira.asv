@@ -1,7 +1,7 @@
 
 function stats_Kira()
 add_repos_to_path
-[Results] = get_data_struct;
+[Results] = create_data_struct;
 S = get_subjects;
 
 gather_data_in_struct = true;
@@ -9,7 +9,7 @@ run_stats = true;
 
 %% organise data in struct
 if gather_data_in_struct
-    Analyses = {'IK','ID','SO','SO_Activation','JRL'};
+    Analyses = get_analyses;
     for iSubj = 1:length(S.subjects)
         for iSess = 1:length(S.sessions)
 
@@ -24,13 +24,11 @@ if gather_data_in_struct
                 results_struct = Results.(curr_analysis).(session);
 
                 % add all participants to the results struct and time normalise data
-                [raw,tnorm,results_struct] = time_norm_per_session(data_struct,results_struct);
+                [raw,tnorm,results_struct] = time_norm_per_session(data_struct,results_struct,iSubj);
 
                 Results.(curr_analysis).(session) = results_struct;
 
             end
-            % add the subject index
-            Results.Subject.(session)(end+1) = iSubj;
 
             % show a progress bar
             percentage = (iSubj/length(S.subjects)*100);
@@ -50,14 +48,14 @@ end
 if run_stats
 
     load([get_main_dir fp 'results.mat'])
-      Results = calculate_peaks(Results);                                                                             
+    Results = calculate_peaks(Results);
 
     load_participant_characteristics()
 
-%     x = Results.JRL.session1.left.peak_HCF';
-%     y = Results.JRL.session1.right.peak_HCF';
-%     [rsquared,pvalue, p1,rlo,rup] = plotCorr (x,y,1,0.05);  
-    
+    %     x = Results.JRL.session1.left.peak_HCF';
+    %     y = Results.JRL.session1.right.peak_HCF';
+    %     [rsquared,pvalue, p1,rlo,rup] = plotCorr (x,y,1,0.05);
+
     plot_muscle_forces(Results)
     
 end
@@ -121,45 +119,106 @@ function S = get_subjects()
 S = struct;
 S.subjects = {getfolders(get_main_dir).name};
 S.sessions = {'\pre', '\post', ''};
+
+% --------------------------------------------------------------------------------------------------------------- %
+function Analyses = get_analyses()
+Analyses = {'IK','ID','SO','SO_Activation','JRL'};
+
 % --------------------------------------------------------------------------------------------------------------- %
 function load_participant_characteristics()
 cd(get_main_dir)
 load('participants_characteristics.mat')
 
 % --------------------------------------------------------------------------------------------------------------- %
-function [Results] = get_data_struct()
+function [Results] = create_data_struct()
 
 Results = struct;
-leg = {'right','left'};
+legs = {'right','left'};
 for i = 1:3
-    for l = 1:numel(leg)
+    for l = 1:numel(legs)
         session = ['session' num2str(i)];
-        Results.IK.(session).(leg{l}) = struct;
-        Results.ID.(session).(leg{l}) = struct;
-        Results.SO.(session).(leg{l}) = struct;
-        Results.SO_Activation.(session).(leg{l}) = struct;
-        Results.SO_normalised.(session).(leg{l}) = struct;
-        Results.JRL.(session).(leg{l}) = struct;
+        Results.IK.(session).(legs{l}) = struct;
+        Results.ID.(session).(legs{l}) = struct;
+        Results.SO.(session).(legs{l}) = struct;
+        Results.SO_Activation.(session).(legs{l}) = struct;
+        Results.SO_normalised.(session).(legs{l}) = struct;
+        Results.JRL.(session).(legs{l}) = struct;
         Results.Mass.(session) = [];
         Results.Subject.(session) = [];
     end
 end
 
-S = get_subjects;
-Analyses = {'IK','ID','SO','SO_Activation','JRL'};
-for iSubj = 1:length(S.subjects)
-    for iSess = 1:length(S.sessions)
+Results = assign_nan_to_empty_columns(Results);
 
+% --------------------------------------------------------------------------------------------------------------- %
+function [variable_struct] = find_all_variables_per_analysis_type()
+
+S = get_subjects;
+Analyses = get_analyses;
+variable_struct = struct;
+for iSess = 1:length(S.sessions)
+    for iSubj = 1:length(S.subjects)
         [Logic, Path] = get_data_paths(iSubj, iSess);
         if ~Logic; continue; end
-
         load(Path.matResults)
-        session = ['session' num2str(iSess)];
         for iAnal = 1:length(Analyses)
+            curr_analysis = Analyses{iAnal};
+            data_struct = data.(curr_analysis).FINAL_PERSONALISEDTORSIONS_scaled_final;
+            trial_list = fields(data_struct);
+            variables = fields(data_struct.(trial_list{2}));
+            for iVar = 1:length(variables)
+                current_variable = variables {iVar};
+                variable_struct.(curr_analysis).(current_variable) = 1;
+            end
         end
     end
 end
 
+% --------------------------------------------------------------------------------------------------------------- %
+function Results = assign_nan_to_empty_columns(Results)
+
+S = get_subjects;
+Analyses = get_analyses;
+legs = {'right','left'};
+
+% loop through all trials in the data folder find unique vraible names for
+% each analysis (e.g. IK = pelvis_tilt, hip_flexion... | SO = add_brev_r,
+% psoas_r ...)
+[variable_struct] = find_all_variables_per_analysis_type;
+
+for iSess = 1:length(S.sessions)
+    for iSubj = 1:length(S.subjects)
+        [Logic, Path] = get_data_paths(iSubj, iSess);
+        session = ['session' num2str(iSess)];
+
+        for iAnal = 1:length(Analyses)
+            for l = 1:numel(legs)
+                curr_analysis = Analyses{iAnal};
+                variables = fields(variable_struct.(curr_analysis));
+
+                for iVar = 1:length(variables)
+                    current_variable = variables {iVar};
+                    
+                    % if data exists assign column with 1, if not assign 0
+                    if Logic == 1
+                        Results.(curr_analysis).(session).(legs{l}).(current_variable)(:,iSubj) = 1;
+                        Results.Subject.(session)(iSubj) = 1;
+                    else
+                        Results.(curr_analysis).(session).(legs{l}).(current_variable)(:,iSubj) = 0;
+                        Results.Subject.(session)(iSubj) = 0;
+                    end
+                    
+                    % when it gets to the last subject, make all ZEROS == NaN
+                    if iSubj == length(S.subjects)
+                        curr_var_data = Results.(curr_analysis).(session).(legs{l}).(current_variable);
+                        curr_var_data(curr_var_data==0) = nan;
+                        Results.(curr_analysis).(session).(legs{l}).(current_variable) = curr_var_data;
+                    end
+                end
+            end
+        end
+    end
+end
 
 % --------------------------------------------------------------------------------------------------------------- %
 function [Logic, Path] = get_data_paths(iSubj,iSess)
@@ -179,7 +238,7 @@ Path.osimModel  = [session_path fp 'model\FINAL_PERSONALISEDTORSIONS_scaled_fina
 
 Logic = isfolder(Path.output);
 if Logic == 0
-    disp([Path.session ' does not exist'])
+%     disp([Path.session ' does not exist'])
 end
 
 % --------------------------------------------------------------------------------------------------------------- %
@@ -195,11 +254,12 @@ for ii = 0:nMuscles-1
 end
 
 % --------------------------------------------------------------------------------------------------------------- %
-function [raw,tnorm,results_struct] = time_norm_per_session(data_struct,results_struct)
+function [raw,tnorm,results_struct] = time_norm_per_session(data_struct,results_struct,iCol)
 % data_struct = a struct similar to the output of load_sto_file
 
 % add all participants to the results struct and time normalise data
 trialNames = fields(data_struct);
+legs = {'left', 'right'};
 if contains(trialNames{1},'mass')
     trialNames(1) = [];
 end
@@ -212,7 +272,7 @@ variables = variables(~contains(variables,'calc'));
 raw   = struct; raw.left = struct; raw.right = struct;
 tnorm = struct; tnorm.left = struct; tnorm.right = struct;
 
-% add the avalyses to the struncts (IK, ID, SO, JRL)
+% add the varaibles to the structs (e.g. pelvis_tilt, hip_flexion...)
 for iVar = variables'
     raw.right.(iVar{1}) = [];
     raw.left.(iVar{1}) = [];
@@ -261,18 +321,17 @@ end
 
 % add to results struct
 for iVar = variables'
-    if ~isfield(results_struct.right,iVar{1})
-        results_struct.right.(iVar{1}) = [];
-        results_struct.left.(iVar{1}) = [];
-    end
-
-    % right leg (try in case the "iVar" is empty)
-    try
-        results_struct.right.(iVar{1})(:,end+1) = tnorm.right.(iVar{1});
-    end
-    % left leg
-    try
-        results_struct.left.(iVar{1})(:,end+1) = tnorm.left.(iVar{1});
+    for l = 1:numel(legs)
+        leg = legs{l};
+        rows = [1:length(tnorm.(leg).(iVar{1}))]';
+        
+        % if data from "iVar" is empty, make it NaN
+        if ~isnan(results_struct.(leg).(iVar{1})(iCol))
+            results_struct.(leg).(iVar{1})(rows,iCol) = tnorm.(leg).(iVar{1});
+        else
+            results_struct.(leg).(iVar{1})(rows,iCol) = NaN;
+            disp([leg ' ' iVar{1} ' did not exist']);
+        end
     end
 end
 
