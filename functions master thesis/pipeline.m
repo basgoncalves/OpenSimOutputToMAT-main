@@ -5,21 +5,21 @@ activate_msk_modelling
 % add: choose data to plot, choose std/all trials
 
 %% individual data to be changed before every run
-subj = 'P04';
-surg = '\post';%\pre or \post or ''
-
+subj = 'TD06';
+surg = '';%\pre or \post or ''
+root_path = 'C:\Users\Balu\Nextcloud\Documents\MA\Code\Kira_MSc_data\';
 %% choose what you want to run
 scale = 0;
 add_sacrum = 0;
 replace_nan = 0;
 IK_max_error = 0;
-check_muscle_moment_arm = 0;
+check_muscle_moment_arm = 1;
 plot_IK = 0;
-plot_ID = 1;
+plot_ID = 0;
 plot_SO = 0;
 plot_JRF = 0;
 plot_std = 0;
-plot_all_trials = 1;
+plot_all_trials = 0;
 
 %%
 switch surg
@@ -35,7 +35,7 @@ subj_name = [subj '_scaled'];
 td01 = 0;
 folder_ending = '';
 folder_sacrum = '';
-savepath = ['C:\Users\Balu\Nextcloud\Documents\MA\Daten\' subj surg];
+savepath = [root_path subj surg];
 
 
 switch part
@@ -93,8 +93,8 @@ markers_torso_list = {'STRN','T10','C7'};
 markers_legs_list = {'LASI', 'RASI', 'SACR', 'LT1', 'LT2', 'LT3', 'LS1', 'LS2', 'LS3', 'LHEE', 'LTOE', 'RT1', 'RT2', 'RT3', 'RS1', 'RS2', 'RS3', 'RHEE', 'RTOE'};
 % markers_list = {'T10','C7','LASI', 'RASI', 'SACR','LTHI1', 'LTHI2', 'LTHI3', 'LTIB1', 'LTIB2', 'LTIB3', 'LHEEL', 'LTOE', 'RTHI1', 'RTHI2', 'RTHI3', 'RTIB1', 'RTIB2', 'RTIB3', 'RHEEL', 'RTOE'};
 % markers_list = {'LASI','RASI','LASI', 'RASI', 'RTHI1', 'RTHI2', 'RTHI3', 'RTIB1', 'RTIB2', 'RTIB3', 'RHEEL', 'RTOE', 'RTHI1', 'RTHI2', 'RTHI3', 'RTIB1', 'RTIB2', 'RTIB3', 'RHEEL', 'RTOE'};
-subject_folder = ['C:\Users\Balu\Nextcloud\Documents\MA\Daten\' subj surg '\output automization' folder_sacrum '\FINAL_PERSONALISEDTORSIONS_scaled_final' folder_ending '\'];
-events_folder = ['C:\Users\Balu\Nextcloud\Documents\MA\Daten\' subj surg '\C3D\']; % path for C3D events
+subject_folder = [root_path subj surg '\output automization' folder_sacrum '\FINAL_PERSONALISEDTORSIONS_scaled_final' folder_ending '\'];
+events_folder = [root_path subj surg '\C3D\']; % path for C3D events
 
 %% generate scale template
 if scale == 1 && mri == 1
@@ -105,13 +105,13 @@ end
 
 %% replace marker names
 if replace_nan == 1
-    trc_path = ['C:\Users\Balu\Nextcloud\Documents\MA\Daten\' subj surg '\C3D\' trial_list{1} '\marker_experimental_with_sacrum.trc'];
+    trc_path = [root_path subj surg '\C3D\' trial_list{1} '\marker_experimental_with_sacrum.trc'];
     replace_marker_names_Hans(trc_path);
 end
 
 %% add sacrum marker
 if add_sacrum == 1
-    statictrcpath = ['C:\Users\Balu\Nextcloud\Documents\MA\Daten\' subj surg '\C3D\' trial_list{1} '\marker_experimental.trc'];
+    statictrcpath = [root_path subj surg '\C3D\' trial_list{1} '\marker_experimental.trc'];
     trc = add_sacrum_to_trc(statictrcpath);
 end
 
@@ -138,13 +138,13 @@ end
 
 %% check muscle moment arm
 if check_muscle_moment_arm == 1
-    modelFilename = ['C:\Users\Balu\Nextcloud\Documents\MA\Daten\' subj surg '\Model\FINAL_PERSONALISEDTORSIONS_scaled_final.osim'];
-    if td01 == 0
-        motionFilename = ['C:\Users\Balu\Nextcloud\Documents\MA\Daten\' subj surg '\output automization' folder_sacrum '\FINAL_PERSONALISEDTORSIONS_scaled_final\' trial_list{1} '\Output\IK\IK.mot'];
-        momentArmsAreWrong_l = checkMuscleMomentArms_l(modelFilename, motionFilename);
+    modelFilename = [root_path subj surg '\Model\FINAL_PERSONALISEDTORSIONS_scaled_final.osim'];
+    if td01 == 1
+        motionFilename = [root_path subj surg '\output automization' folder_sacrum '\FINAL_PERSONALISEDTORSIONS_scaled_final\' trial_list{1} '\Output\IK\IK.mot'];
         momentArmsAreWrong_r = checkMuscleMomentArms_r(modelFilename, motionFilename);
-    elseif td01 == 1
-        motionFilename = ['C:\Users\Balu\Nextcloud\Documents\MA\Daten\' subj surg '\output automization' folder_sacrum '\FINAL_PERSONALISEDTORSIONS_scaled_final\' trial_list{1} '\Output\IK\IK.mot'];
+    else
+        motionFilename = [root_path subj surg '\output automization' folder_sacrum '\FINAL_PERSONALISEDTORSIONS_scaled_final\' trial_list{1} '\Output\IK\IK.mot'];
+        momentArmsAreWrong_l = checkMuscleMomentArms_l(modelFilename, motionFilename);
         momentArmsAreWrong_r = checkMuscleMomentArms_r(modelFilename, motionFilename);
     end
 end
@@ -371,41 +371,41 @@ end
 
 
 %% 
-
-paths = {'C:\Users\Balu\Nextcloud\Documents\MA\Daten\P01\pre\output automization';
-          'C:\Users\Balu\Nextcloud\Documents\MA\Daten\P01\post\output automization';
-          'C:\Users\Balu\Nextcloud\Documents\MA\Daten\P02\pre\output automization';
-          'C:\Users\Balu\Nextcloud\Documents\MA\Daten\P02\post\output automization';
-          'C:\Users\Balu\Nextcloud\Documents\MA\Daten\P03\pre\output automization';
-          'C:\Users\Balu\Nextcloud\Documents\MA\Daten\P03\post\output automization';
-          'C:\Users\Balu\Nextcloud\Documents\MA\Daten\P04\pre\output automization';
-          'C:\Users\Balu\Nextcloud\Documents\MA\Daten\P04\post\output automization';
-          'C:\Users\Balu\Nextcloud\Documents\MA\Daten\P05\pre\output automization';
-          'C:\Users\Balu\Nextcloud\Documents\MA\Daten\P05\post\output automization';
-          'C:\Users\Balu\Nextcloud\Documents\MA\Daten\TD01\output automization';
-          'C:\Users\Balu\Nextcloud\Documents\MA\Daten\TD04\output automization';
-          'C:\Users\Balu\Nextcloud\Documents\MA\Daten\TD06\output automization';
-          'C:\Users\Balu\Nextcloud\Documents\MA\Daten\TD07\output automization';};
-
-for i = 1:length(paths)
-    outputPath = paths{i};
-    saveDataToStruct(outputPath)
-end
-
-
-
-
-
-
-
-figure;plot(data.IK.FINAL_PERSONALISEDTORSIONS_scaled_final.T_Dynamic08_1_right.ankle_angle_r)
-
-% trial that starts at 1 on c3d
-stoFile = 'C:\Users\Balu\Nextcloud\Documents\MA\Daten\P03\post\output automization\FINAL_PERSONALISEDTORSIONS_scaled_final\Dynamic08\Output\IK\IK.mot';
-frame_first_c3d_in_openSim_frame = get_frame_zero(stoFile);
-
-% trial that first event - initial frame < intial frame
-stoFile = 'C:\Users\Balu\Nextcloud\Documents\MA\Daten\P01\post\output automization\FINAL_PERSONALISEDTORSIONS_scaled_final\Dynamic08\Output\IK\IK.mot';
-frame_first_c3d_in_openSim_frame = get_frame_zero(stoFile);
+% 
+% paths = {'C:\Users\Balu\Nextcloud\Documents\MA\Daten\P01\pre\output automization';
+%           'C:\Users\Balu\Nextcloud\Documents\MA\Daten\P01\post\output automization';
+%           'C:\Users\Balu\Nextcloud\Documents\MA\Daten\P02\pre\output automization';
+%           'C:\Users\Balu\Nextcloud\Documents\MA\Daten\P02\post\output automization';
+%           'C:\Users\Balu\Nextcloud\Documents\MA\Daten\P03\pre\output automization';
+%           'C:\Users\Balu\Nextcloud\Documents\MA\Daten\P03\post\output automization';
+%           'C:\Users\Balu\Nextcloud\Documents\MA\Daten\P04\pre\output automization';
+%           'C:\Users\Balu\Nextcloud\Documents\MA\Daten\P04\post\output automization';
+%           'C:\Users\Balu\Nextcloud\Documents\MA\Daten\P05\pre\output automization';
+%           'C:\Users\Balu\Nextcloud\Documents\MA\Daten\P05\post\output automization';
+%           'C:\Users\Balu\Nextcloud\Documents\MA\Daten\TD01\output automization';
+%           'C:\Users\Balu\Nextcloud\Documents\MA\Daten\TD04\output automization';
+%           'C:\Users\Balu\Nextcloud\Documents\MA\Daten\TD06\output automization';
+%           'C:\Users\Balu\Nextcloud\Documents\MA\Daten\TD07\output automization';};
+% 
+% for i = 1:length(paths)
+%     outputPath = paths{i};
+%     saveDataToStruct(outputPath)
+% end
+% 
+% 
+% 
+% 
+% 
+% 
+% 
+% figure;plot(data.IK.FINAL_PERSONALISEDTORSIONS_scaled_final.T_Dynamic08_1_right.ankle_angle_r)
+% 
+% % trial that starts at 1 on c3d
+% stoFile = 'C:\Users\Balu\Nextcloud\Documents\MA\Daten\P03\post\output automization\FINAL_PERSONALISEDTORSIONS_scaled_final\Dynamic08\Output\IK\IK.mot';
+% frame_first_c3d_in_openSim_frame = get_frame_zero(stoFile);
+% 
+% % trial that first event - initial frame < intial frame
+% stoFile = 'C:\Users\Balu\Nextcloud\Documents\MA\Daten\P01\post\output automization\FINAL_PERSONALISEDTORSIONS_scaled_final\Dynamic08\Output\IK\IK.mot';
+% frame_first_c3d_in_openSim_frame = get_frame_zero(stoFile);
 
 

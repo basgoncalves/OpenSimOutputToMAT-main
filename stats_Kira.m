@@ -2,7 +2,7 @@
 function stats_Kira()
 
 
-add_repos_to_path
+% add_repos_to_path
 [Results] = get_data_struct; 
 S = get_subjects;
 
@@ -46,15 +46,15 @@ if run_stats
     Results = calculate_peaks(Results);
     sessions = {'session1'; 'session2'; 'session3'};
     joint = 'KCF';
+    leg = 'right';
     sessions = [sessions; sessions];
-%     titles = ['Session 1: right HCF';'Session 1: right KCF'; 'Session 2: right HCF'; 'Session 2: right KCF';'Session 3: right HCF'; 'Session 3: right KCF' ];
-    figure
+    
     [ax, pos,FirstCol,LastRow,LastCol] = tight_subplotBG(6,0);
     for iDOF = 1:6
     axes(ax(iDOF)); hold on; grid on;
-    plot(Results.JRL.(sessions{iDOF}).left.(joint)); hold on;
-    plot(Results.JRL.(sessions{iDOF}).left.(['peak_' joint '_loc']), Results.JRL.(sessions{iDOF}).left.(['peak_' joint '_val']),'*')
-    title([sessions{iDOF} ' left ' joint])
+    plot(Results.JRL.(sessions{iDOF}).(leg).(joint)); hold on;
+    plot(Results.JRL.(sessions{iDOF}).(leg).(['peak_' joint '_loc']), Results.JRL.(sessions{iDOF}).(leg).(['peak_' joint '_val']),'*')
+    title([sessions{iDOF} ' ' leg ' ' joint])
     if contains(sessions{iDOF},'session3')
         joint = 'HCF';
     end
@@ -238,8 +238,8 @@ for i = 1:3
         lim2 = round(length(Results.JRL.(session).(leg).HCF)*0.35);
         lim3 = round(length(Results.JRL.(session).(leg).HCF)*0.8);
 
-        [Results.JRL.(session).(leg).peak_HCF_val(1,:), Results.JRL.(session).(leg).peak_HCF_loc(1,:)] = calc_max(Results.JRL.(session).(leg).HCF(lim1:lim2,:));
-        [Results.JRL.(session).(leg).peak_HCF_val(2,:), Results.JRL.(session).(leg).peak_HCF_loc(2,:)] = calc_max(Results.JRL.(session).(leg).HCF(lim2:lim3,:));
+        [Results.JRL.(session).(leg).peak_HCF_val(1,:), Results.JRL.(session).(leg).peak_HCF_loc(1,:)] = calc_max(Results.JRL.(session).(leg).HCF(lim1:lim2,:),0);
+        [Results.JRL.(session).(leg).peak_HCF_val(2,:), Results.JRL.(session).(leg).peak_HCF_loc(2,:)] = calc_max(Results.JRL.(session).(leg).HCF(lim2:lim3,:),0);
         Results.JRL.(session).(leg).peak_HCF_loc(1,:) = Results.JRL.(session).(leg).peak_HCF_loc(1,:) + lim1-1;
         Results.JRL.(session).(leg).peak_HCF_loc(2,:) = Results.JRL.(session).(leg).peak_HCF_loc(2,:) + lim2-1;
 
@@ -247,18 +247,22 @@ for i = 1:3
         Results.JRL.(session).(leg).KCF = sum3D(Results.JRL.(session).(leg), ['knee_' leg(1) '_on_tibia_' leg(1) '_in_tibia_' leg(1)]);
 
         lim1 = round(length(Results.JRL.(session).(leg).KCF)*0.08);
-        lim2 = round(length(Results.JRL.(session).(leg).KCF)*0.3);
+        lim2 = round(length(Results.JRL.(session).(leg).KCF)*0.35);
         lim3 = round(length(Results.JRL.(session).(leg).KCF)*0.8);
 
-        [Results.JRL.(session).(leg).peak_KCF_val(1,:), Results.JRL.(session).(leg).peak_KCF_loc(1,:)] = calc_max(Results.JRL.(session).(leg).KCF(lim1:lim2,:));
-        [Results.JRL.(session).(leg).peak_KCF_val(2,:), Results.JRL.(session).(leg).peak_KCF_loc(2,:)] = calc_max(Results.JRL.(session).(leg).KCF(lim2:lim3,:));
+        [Results.JRL.(session).(leg).peak_KCF_val(1,:), Results.JRL.(session).(leg).peak_KCF_loc(1,:)] = calc_max(Results.JRL.(session).(leg).KCF(lim1:lim2,:),0);
+        [Results.JRL.(session).(leg).peak_KCF_val(2,:), Results.JRL.(session).(leg).peak_KCF_loc(2,:)] = calc_max(Results.JRL.(session).(leg).KCF(lim2:lim3,:),0);
         Results.JRL.(session).(leg).peak_KCF_loc(1,:) = Results.JRL.(session).(leg).peak_KCF_loc(1,:) + lim1-1;
         Results.JRL.(session).(leg).peak_KCF_loc(2,:) = Results.JRL.(session).(leg).peak_KCF_loc(2,:) + lim2-1;
 
         Muscles = fields(Results.SO.(session).(leg));
         for m = 1:length(Muscles)
             muscle = Muscles{m};
-            Results.SO.(session).(leg).(['peak_' muscle]) = calc_max(Results.SO.(session).(leg).(muscle));
+            if contains(muscle, 'time') || contains(muscle, 'durationInSeconds') || contains(muscle, 'reserve')
+                Results.SO.(session).(leg).(['peak_' muscle]) = calc_max(Results.SO.(session).(leg).(muscle),1);
+            else
+                Results.SO.(session).(leg).(['peak_' muscle]) = calc_max(Results.SO.(session).(leg).(muscle),0);
+            end
         end
 
     end
@@ -273,9 +277,27 @@ z = Results_substruct.([variable '_fz']);
 out = sqrt(x.^2 + y.^2 + z.^2);
 
 %------------------ calc max moving average 
-function [val,loc] = calc_max(time_curve)
+function [val,loc] = calc_max(time_curve, time_t_f)
 
-[val, loc] = max(movmean(time_curve,3));
+% [val, loc] = max(movmean(time_curve,3));
+time_curve_smth = movmean(time_curve,3);
+for k = 1:size(time_curve_smth,2)
+[val{k}, loc{k}] = findpeaks(time_curve_smth(:,k),'SortStr', 'descend');
+if size(val{k},1) >1
+    val{k}(2:end) = [];
+    loc{k}(2:end) = [];
+end
+if isempty(val{k}) && time_t_f == 0
+    disp('one curve does not have a peak')
+    val{k} = NaN;
+    loc{k} = NaN;
+elseif isempty(val{k}) && time_t_f == 1
+    val{k} = NaN;
+    loc{k} = NaN;
+end
+end
+val = cell2mat(val);
+loc = cell2mat(loc);
 
 % --------------------------------------------------------------------------------------------------------------- %
 function folders = getfolders(directory, contianing_string, IgnoreCase)
