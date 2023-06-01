@@ -1,5 +1,5 @@
 function stats_Kira()
-
+addpath(genpath('C:\Users\Balu\Nextcloud\Documents\MA\Code\MSKmodelling'))
 
 % add_repos_to_path
 [Results] = get_data_struct;
@@ -104,7 +104,7 @@ sessions = {'session1'; 'session2'; 'session3'};
     if plot_JRF_curve_and_peaks
         nb_plots = size(sessions,1)*size(joints,1);
         for j=1:size(legs,1)
-            [ax, pos,FirstCol,LastRow,LastCol] = tight_subplotBG(nb_plots,0);
+            [ax, pos,FirstCol,LastRow,LastCol] = tight_subplot(nb_plots,0);
             count = 1;
             for iDOF = 1:size(sessions,1)
                 for k=1:size(joints,1)
@@ -138,7 +138,7 @@ sessions = {'session1'; 'session2'; 'session3'};
     end
 
     nb_plots = size(angles,1)*size(joints,1);
-    [ax, pos,FirstCol,LastRow,LastCol] = tight_subplotBG(nb_plots,0,[],[0.1 0.05],[0.1 0.05]);
+    [ax, pos,FirstCol,LastRow,LastCol] = tight_subplot(nb_plots,0,[],[0.1 0.05],[0.1 0.05]);
     count = 1;
     for j=1:size(joints,1)
         for k=1:size(angles,1)
@@ -701,7 +701,7 @@ end
 
 
 % --------------------------------------------------------------------------------------------- %
-function [ha, pos,FirstCol,LastRow,LastCol] = tight_subplotBG(Nh, Nw, gap, marg_h, marg_w,Size)
+function [ha, pos,FirstCol,LastRow,LastCol] = tight_subplot(Nh, Nw, gap, marg_h, marg_w,Size)
 % tight_subplot creates "subplot" axes with adjustable gaps and margins
 %
 % [ha, pos, FirstCol, LastRow] = tight_subplot(Nh, Nw, gap, marg_h, marg_w,Size)
@@ -905,67 +905,67 @@ for iLeg = 1:2
     line_colors = getColor('viridis',3);
 
     % remove '_l' or '_r' from the muscle names
-    IK_names_short = {};
-    for iMusc = 1:length(IK_names)
-        IK_names_short{end+1,1} = IK_names{iMusc}(1:end-2);
-        if any(contains(IK_names_short{end}(end),{'1','2','3'}))                                                % remove numebers 1,2,3
-            IK_names_short{end} = IK_names_short{end}(1:end-1);
-        end
-    end
-    IK_names_short = unique(IK_names_short);
+%     IK_names_short = {};
+%     for iIK = 1:length(IK_names)
+%         IK_names_short{end+1,1} = IK_names{iIK}(1:end-2);
+%         if any(contains(IK_names_short{end}(end),{'1','2','3'}))                                                % remove numebers 1,2,3
+%             IK_names_short{end} = IK_names_short{end}(1:end-1);
+%         end
+%     end
+%     IK_names_short = unique(IK_names_short);
 
     % create figure with subplots
-    n_subplots = length(IK_names_short);
+    n_subplots = length(IK_names);
     [ha, ~,FirstCol,LastRow,~] = tight_subplot(n_subplots,0,[0.008 0.01],[0.05 0.02],[0.08 0.01],0.99);
   
-    % loop through all muscles
-    for iMusc = 1:length(IK_names_short)
+    % loop through all joints
+    for iIK = 1:length(IK_names)
         indData = {};
         MeanForcesAllSessions = [];
         SDForcesAllSessions = [];
 
-        % assign muscle forces for each session to one 
+        % assign kinematics for each session to one 
         for iSess = 1:3
             session = ['session' num2str(iSess)];
 
             % select either absolute or normalised
-            switch Type
-                case 'Normalised'
-                    muscle_forces = Results.SO_normalised.(session).(leg);
-                case 'Absolute'
-                    muscle_forces = Results.SO.(session).(leg);
-            end
+%             switch Type
+%                 case 'Normalised'
+%                     muscle_forces = Results.SO_normalised.(session).(leg);
+%                 case 'Absolute'
+%                     IK_values = Results.SO.(session).(leg);
+%             end
 
             
-            current_muscle = IK_names_short{iMusc};
+            current_DOF = IK_names{iIK};
 
             % get all muscle segments for each muscle name
-            segments = IK_names(contains(IK_names,current_muscle));                                         
-            single_muscle_forces = muscle_forces.(segments{1});
+            segments = IK_names(contains(IK_names,current_DOF));                                         
+            single_IK = IK_values.(segments{1});
 
             % if a column has all zeros make it all NaN
-            single_muscle_forces = ZeroToNaN(single_muscle_forces);
+            single_IK = ZeroToNaN(single_IK,2);
             
-            % average the muscle forces for each segment (for each column /trial)
+            % average the IK for each segment (for each column /trial)
             for iSeg = 2:length(segments)
-                single_muscle_forces = (single_muscle_forces + muscle_forces.(segments{iSeg}))./2;                       
+                single_IK = (single_IK + IK_values.(segments{iSeg}))./2;                       
             end
             
             if iSess == 3
-                single_muscle_forces(:,7)=NaN;
+                single_IK(:,7)=NaN;
             end
 
 
             % plot mean and SD
-            indData{iSess} = removeNaNrows(single_muscle_forces,2);
-            MeanForcesAllSessions(:,iSess) = nanmean(single_muscle_forces,2);
-            SDForcesAllSessions(:,iSess) = nanstd(single_muscle_forces,0,2);
+            indData{iSess} = removeNaNrows(single_IK);
+            MeanForcesAllSessions(:,iSess) = nanmean(single_IK,2);
+            SDForcesAllSessions(:,iSess) = nanstd(single_IK,0,2);
 
         end
 
         % run and save SPM plots
         [SPM] = ttest2(indData);
-        suptitle([current_muscle ' ' leg])
+        suptitle([current_DOF ' ' leg])
         
         savedir = [get_main_dir() fp 'SPM_results'];
         if ~isfolder(savedir); mkdir(savedir); end
@@ -973,7 +973,7 @@ for iLeg = 1:2
         close(gcf)
         
         % plot force-time curves and add SPM lines on the plot
-        axes(ha(iMusc)); hold on
+        axes(ha(iIK)); hold on
         p = plotShadedSD(MeanForcesAllSessions,SDForcesAllSessions,line_colors);
         
         add_spm_to_plot(SPM)
@@ -983,7 +983,7 @@ for iLeg = 1:2
         
 
         % add ylable to first col
-        if any(iMusc == FirstCol)
+        if any(iIK == FirstCol)
             yl = ylabel('% Max isom force');
             yl.Rotation = 0;
             yl.HorizontalAlignment ="right";
@@ -1009,8 +1009,136 @@ for iLeg = 1:2
     makeMyFigureNice
     
     % save figure
-    saveas(gcf, [savedir fp 'muscle_forces' leg '.jpeg'])
+    saveas(gcf, [savedir fp 'IK' leg '.jpeg'])
 
 end
 
+% ---------------------------------------------------------------------- %
+function [cMat,LineStyles,Marker] = getColor (pallet_name,nColors)
 
+if nColors>163
+    error('colorBG function only works for n2 =<63')
+end
+
+if nargin < 1
+    cMat = convertRGB([176, 104, 16; ...
+        16, 157, 176; ...
+        136, 16, 176;176,...
+        16, 109;31, 28, 28]);  % color scheme 2 (Bas)
+else
+
+    switch pallet_name
+
+        case 'prism';   cMat = prism;
+        case 'parula';  cMat = parula;
+        case 'flag';    cMat = flag;
+        case 'hsv';     cMat = hsv;
+        case 'hot';     cMat = hot;
+        case 'cool';    cMat = cool;
+        case 'spring';  cMat = spring;
+        case 'summer';  cMat = summer;
+        case 'autumn';  cMat = autumn;
+        case 'winter';  cMat = winter;
+        case 'gray';    cMat = gray;
+        case 'bone';    cMat = bone;
+        case 'copper';  cMat = copper;
+        case 'pink';    cMat = pink;
+        case 'lines';   cMat = lines;
+        case 'jet';     cMat = jet;
+        case 'colorcube';cMat = colorcube;
+        case 'viridis'; cMat = viridis;
+    end
+    warning off
+    if nargin == 2
+        if nColors>163; error('colorBG function only works for n2 =<63'); end
+        cMat = cMat(1:length(cMat)/nColors:length(cMat),:);
+    else
+        cMat = cMat([1:64],:);
+    end
+
+    warning on
+end
+
+S = sum(cMat,2);
+Duplicates = [];
+commonLS = {'-' '--' ':' '-.'};
+commonMK = {'none' '+' 's' 'd' '^' 'v'};
+N = length(commonMK);
+LineStyles ={};Marker ={};
+for k = 1:size(cMat,1)
+    idx = find(S==S(k));
+    if length(idx)==1
+        LineStyles{k,1} = commonLS{1};
+        Marker{k,1} = commonMK{1};
+    else
+        if length(idx)/N~= ceil(length(idx)/N)
+            idx(end+1:ceil(length(idx)/N)*N)=NaN;
+        end
+        idx = reshape(idx,N,[]);
+        for col = 1:size(idx,2)
+            for row = 1:size(idx,1)
+                if ~isnan(idx(row,col))
+                    LineStyles{idx(row,col),1} = commonLS{col};
+                    Marker{idx(row,col),1} = commonMK{row};
+                end
+            end
+        end
+    end
+    idx = reshape(idx,[],1);idx(isnan(idx))=[];
+    S(idx) = NaN;
+    Duplicates(idx,1)=k;
+end
+
+% -------------------------------------------------------------------- %
+function [SPM] = ttest2(indData)
+
+n_groups = length(indData);
+combinations = nchoosek([1:n_groups],2); 
+Alpha = 0.05;%/size(combinations,1);
+
+ha = tight_subplot(1,n_groups,[],[],[],[0.05 0.3 0.9 0.5]);
+SPM = struct;
+count = 0;
+for iComb = combinations'
+    count = count + 1;
+    Dataset1 = indData{iComb(1)};
+    Dataset2 = indData{iComb(2)};
+    
+    % run SPM tests
+    spmi = spm1d.stats.ttest2(Dataset1',Dataset2');
+    spmi = spmi.inference(Alpha);
+    
+    comparison_name = [num2str(iComb(1)) '_VS_' num2str(iComb(2))];
+
+    % SPM plot with p-values and t-values threshold
+    axes(ha(count))
+    spmi.plot; spmi.plot_p_values;
+    spmi.plot_threshold_label;
+    title(comparison_name,'Interpreter','none')
+
+    % from the axis, find the index of the siginifant points and it's p-value
+    LinesPlot = ha(count).Children; 
+    significant_idx=[]; 
+    p_value_idx=[];
+    for iLine = 1:length(LinesPlot)
+
+        %  find indexes of patches (signficand shaded areas)   
+        if contains(class(LinesPlot(iLine)),'Patch'); significant_idx(end+1) = iLine; end      
+
+        %  find indexes of tesxt with 'P = ' 
+        if contains(class(LinesPlot(iLine)),'Text') && contains(LinesPlot(iLine).String,'p '); p_value_idx(end+1) = iLine; end      
+    end
+
+    % add spmi results to final struct
+    SPM.(['comp_' comparison_name]) = struct;
+    flds_spmi = fields(spmi);
+    for i = 1:length(flds_spmi)
+        curr_fld = flds_spmi{i};
+        SPM.(['comp_' comparison_name]).(curr_fld) = spmi.(curr_fld);    
+    end
+
+    % add the significance vectors (idx and 
+    SPM.(['comp_' comparison_name]).sig_idx = significant_idx;
+    SPM.(['comp_' comparison_name]).p_idx = p_value_idx;
+end
+tight_subplot_ticks(ha,0,0)
