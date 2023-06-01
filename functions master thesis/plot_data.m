@@ -133,7 +133,7 @@ for i = 1:length(trial_list)
 end
 
 f=gcf;
-f.name = calc;
+f.Name = calc;
 if isfield(ev.cycle,'right')
 x_val_norm_r = x_val_norm_r/nb_r;
 for k = 1:length(ax)/2

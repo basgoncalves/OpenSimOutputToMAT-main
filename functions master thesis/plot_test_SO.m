@@ -29,26 +29,57 @@ knee_op_f = '100';
 % set = xml_read('C:\Users\Balu\Nextcloud\Documents\MA\Code\Kira_MSc_data\TD06\output automization\FINAL_PERSONALISEDTORSIONS_scaled_final\3DGAIT_B_W14\Output\SO\soSettings.xml');
 
 % import data
-forces = load_sto_file(['C:\Users\Balu\Nextcloud\Documents\MA\Code\Kira_MSc_data\TD06\output automization\FINAL_PERSONALISEDTORSIONS_scaled_final\3DGAIT_B_W14\Output\SO\_op' op '_hip' hip_op_f '_knee' knee_op_f '_StaticOptimization_force.sto']);
-med_gas = forces.med_gas_l;
-psoas = forces.psoas_l;
-vast_lat = forces.vas_lat_l;
-rect_fem = forces.rect_fem_l;
+% forces = load_sto_file(['C:\Users\Balu\Nextcloud\Documents\MA\Code\Kira_MSc_data\TD06\output automization\FINAL_PERSONALISEDTORSIONS_scaled_final\3DGAIT_B_W14\Output\SO\_op' op '_hip' hip_op_f '_knee' knee_op_f '_StaticOptimization_force.sto']);
+leg = 'l';
+forces = load_sto_file(['C:\Users\Balu\Nextcloud\Documents\MA\Code\Kira_MSc_data\TD06\output automization\FINAL_PERSONALISEDTORSIONS_scaled_final\3DGAIT_B_W14\Output\SO\_StaticOptimization_force.sto']);
+t = '14';
+% % forces = load_sto_file(['C:\Users\Balu\Nextcloud\Documents\MA\Code\Kira_MSc_data\TD06\output automization\FINAL_PERSONALISEDTORSIONS_scaled_final\3DGAIT_B_W' t '\Output\SO\_new__StaticOptimization_force.sto']);
+switch t
+    case '12'
+        leg = 'r';
+    case '14'
+        leg = 'l';
+    case '19'
+%         start = 7;
+%         stop = 103;
+        leg = 'r';
+    case '20'
+%         start = 1;
+%         stop = 97;
+        leg = 'l';
+end
+
+% forces = load_sto_file('C:\Users\Balu\Desktop\_StaticOptimization_force.sto');
+med_gas = forces.(['med_gas_' leg])%(start:stop);
+psoas = forces.(['psoas_' leg])%(start:stop);
+vast_lat = forces.(['vas_lat_' leg])%(start:stop);
+rect_fem = forces.(['rect_fem_' leg])%(start:stop);
+glut_max2 = forces.(['glut_max2_' leg])%(start:stop);
 
 % plot data
+figure
+% plot(forces.time(start:stop),med_gas)
+% hold on
+% plot(forces.time(start:stop),psoas)
+% plot(forces.time(start:stop),vast_lat)
+% plot(forces.time(start:stop),rect_fem)
+% plot(forces.time(start:stop),glut_max2)
 plot(forces.time,med_gas)
 hold on
 plot(forces.time,psoas)
 plot(forces.time,vast_lat)
 plot(forces.time,rect_fem)
-title(['muscle forces: hip ' hip_op_f ', knee ' knee_op_f ' and op 0.' op])
-legend('gastrocnemius medialis', 'psoas', 'vastus lateralis', 'rectus femoris')
+plot(forces.time,glut_max2)
+% title(['muscle forces: hip ' hip_op_f ', knee ' knee_op_f ' and op 0.' op 'no settings file'])
+title(['muscle forces Trial ' t])
+
+legend('gastrocnemius medialis', 'psoas', 'vastus lateralis', 'rectus femoris', 'gluteus maximus 2')
 xlabel('time [s]')
 ylabel('muscle force [N]')
 
 %save data
 savepath = 'C:\Users\Balu\Nextcloud\Documents\MA\Code\Kira_MSc_data\TD06\output automization\FINAL_PERSONALISEDTORSIONS_scaled_final\3DGAIT_B_W14\Output\SO';
-saveas(gcf,fullfile(savepath, ['muscle_forces_l_op' op '_hip' hip_op_f '_knee' knee_op_f]),'tif')
+% saveas(gcf,fullfile(savepath, ['muscle_forces_l_op' op '_hip' hip_op_f '_knee' knee_op_f]),'tif')
 
 
 

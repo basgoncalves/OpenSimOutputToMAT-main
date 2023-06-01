@@ -6,8 +6,10 @@ if nargin < 1
 end
 %%
 
-% addpath 'C:\Users\Balu\Nextcloud\Documents\MA\Code'
-% activate_msk_modelling
+addpath 'C:\Users\Balu\Nextcloud\Documents\MA\Code'
+% addpath 'C:\Users\Balu\Nextcloud\Documents\MA\Code\OpenSimOutputToMAT-main\functions master thesis'
+addpath 'C:\Users\Balu\Nextcloud\Documents\MA\Code\MSKmodelling'
+activate_msk_modelling
 % outputPath = 'C:\Users\Balu\Nextcloud\Documents\MA\Daten\P04\post\output automization';
 modelList = GetSubDirsFirstLevelOnly(outputPath);
 

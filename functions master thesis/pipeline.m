@@ -1,25 +1,25 @@
-clear all; close all;
+clear all; %close all;
 clc;
-activate_msk_modelling
-
-% add: choose data to plot, choose std/all trials
+addpath(genpath('C:\Users\Balu\Nextcloud\Documents\MA\Code\MSKmodelling')); 
 
 %% individual data to be changed before every run
-subj = 'TD06';
+subj = 'TD01';
 surg = '';%\pre or \post or ''
 root_path = 'C:\Users\Balu\Nextcloud\Documents\MA\Code\Kira_MSc_data\';
 %% choose what you want to run
 scale = 0;
 add_sacrum = 0;
 replace_nan = 0;
+mod_max_isom_force = 0; force_factor = 2;
 IK_max_error = 0;
-check_muscle_moment_arm = 1;
+check_muscle_moment_arm = 0;
 plot_IK = 0;
 plot_ID = 0;
 plot_SO = 0;
-plot_JRF = 0;
+plot_JRL = 1;
 plot_std = 0;
-plot_all_trials = 0;
+plot_all_trials = 1; % plot all trials individually (1) or average with standard deviation (0)
+save_struct = 0;
 
 %%
 switch surg
@@ -71,29 +71,29 @@ switch part
         trial_list = {'dynamic09', 'dynamic12', 'dynamic15', 'dynamic21', 'dynamic22'};
         subj_mass = 72.4;
     case 'TD01'
-        trial_list = {'3DGAIT_MRI_W1', '3DGAIT_MRI_W3', '3DGAIT_MRI_W5', '3DGAIT_MRI_W6', '3DGAIT_MRI_W8'}; %TD01
+        trial_list = {'3DGAIT_MRI_W1', '3DGAIT_MRI_W3'}; %, '3DGAIT_MRI_W5', '3DGAIT_MRI_W6', '3DGAIT_MRI_W8'}; %TD01
         subj_mass = 38.9;
         td01 = 1;
-        folder_sacrum = ' sacrum';
+%         folder_sacrum = ' sacrum';
         %         folder_ending = '_test';
     case 'TD04'
         trial_list = {'3DGAIT_B_W1', '3DGAIT_B_W2', '3DGAIT_B_W8', '3DGAIT_B_W9', '3DGAIT_B_W10', '3DGAIT_B_W12', '3DGAIT_B_W18', '3DGAIT_B_W19', '3DGAIT_B_W20' }; %TD04
         subj_mass = 54.8;
-        folder_sacrum = ' sacrum';
+%         folder_sacrum = ' sacrum';
     case 'TD06'
         trial_list = {'3DGAIT_B_W12', '3DGAIT_B_W19', '3DGAIT_B_W14', '3DGAIT_B_W20'}; %TD06
         subj_mass = 29.6;
-        folder_sacrum = ' sacrum';
+%         folder_sacrum = ' sacrum';
     case 'TD07'
         trial_list = {'3DGAIT_A_W6', '3DGAIT_A_W7', '3DGAIT_A_W9', '3DGAIT_A_W18', '3DGAIT_A_W25', '3DGAIT_A_W27', '3DGAIT_A_W29', '3DGAIT_A_W32'}; %TD07
         subj_mass = 20.4;
-        folder_sacrum = ' sacrum';
+%         folder_sacrum = ' sacrum';
 end
 markers_torso_list = {'STRN','T10','C7'};
 markers_legs_list = {'LASI', 'RASI', 'SACR', 'LT1', 'LT2', 'LT3', 'LS1', 'LS2', 'LS3', 'LHEE', 'LTOE', 'RT1', 'RT2', 'RT3', 'RS1', 'RS2', 'RS3', 'RHEE', 'RTOE'};
 % markers_list = {'T10','C7','LASI', 'RASI', 'SACR','LTHI1', 'LTHI2', 'LTHI3', 'LTIB1', 'LTIB2', 'LTIB3', 'LHEEL', 'LTOE', 'RTHI1', 'RTHI2', 'RTHI3', 'RTIB1', 'RTIB2', 'RTIB3', 'RHEEL', 'RTOE'};
 % markers_list = {'LASI','RASI','LASI', 'RASI', 'RTHI1', 'RTHI2', 'RTHI3', 'RTIB1', 'RTIB2', 'RTIB3', 'RHEEL', 'RTOE', 'RTHI1', 'RTHI2', 'RTHI3', 'RTIB1', 'RTIB2', 'RTIB3', 'RHEEL', 'RTOE'};
-subject_folder = [root_path subj surg '\output automization' folder_sacrum '\FINAL_PERSONALISEDTORSIONS_scaled_final' folder_ending '\'];
+subject_folder = [root_path subj surg '\output incr opt fibre length' folder_sacrum '\FINAL_PERSONALISEDTORSIONS_scaled_final' folder_ending '\'];
 events_folder = [root_path subj surg '\C3D\']; % path for C3D events
 
 %% generate scale template
@@ -116,20 +116,22 @@ if add_sacrum == 1
 end
 
 %% modify max isometric force
-% import org.opensim.modeling.*
-% ModelIn = 'C:\Users\Balu\Nextcloud\Documents\MA\Daten\P01\pre\Model\FINAL_PERSONALISEDTORSIONS_scaled_final.osim';
-% model = Model(ModelIn);
-% muscles = model.getMuscles();
-% nMuscles = muscles.getSize();
-%
-% for ii = 0:nMuscles-1
-%     current_max = muscles.get(ii).getMaxIsometricForce;
-%     muscles.get(ii).setMaxIsometricForce(current_max *1.5);
-% end
-%
-% % Write the model to a new file
-% ModelOut = strrep(ModelIn, '.osim','_new_isom.osim');
-% model.print(ModelOut)
+if mod_max_isom_force == 1
+    import org.opensim.modeling.*
+    ModelIn = [root_path subj surg '\Model\FINAL_PERSONALISEDTORSIONS_scaled_final.osim'];
+    model = Model(ModelIn);
+    muscles = model.getMuscles();
+    nMuscles = muscles.getSize();
+
+    for ii = 0:nMuscles-1
+        current_max = muscles.get(ii).getMaxIsometricForce;
+        muscles.get(ii).setMaxIsometricForce(current_max *force_factor);
+    end
+
+    % Write the model to a new file
+    ModelOut = strrep(ModelIn, '.osim','_new_isom.osim');
+    model.print(ModelOut)
+end
 %% determine maximum marker error in IK
 if IK_max_error==1
     id = trial_list{1}; % id of trial
@@ -140,7 +142,7 @@ end
 if check_muscle_moment_arm == 1
     modelFilename = [root_path subj surg '\Model\FINAL_PERSONALISEDTORSIONS_scaled_final.osim'];
     if td01 == 1
-        motionFilename = [root_path subj surg '\output automization' folder_sacrum '\FINAL_PERSONALISEDTORSIONS_scaled_final\' trial_list{1} '\Output\IK\IK.mot'];
+        motionFilename = [root_path subj surg '\output automization' folder_sacrum '\FINAL_PERSONALISEDTORSIONS_scaled_final\' trial_list{3} '\Output\IK\IK.mot'];
         momentArmsAreWrong_r = checkMuscleMomentArms_r(modelFilename, motionFilename);
     else
         motionFilename = [root_path subj surg '\output automization' folder_sacrum '\FINAL_PERSONALISEDTORSIONS_scaled_final\' trial_list{1} '\Output\IK\IK.mot'];
@@ -199,7 +201,7 @@ if plot_ID == 1
     y_label = 'Joint moments (Nm/BW)';%
     BW_norm = 1;
     if plot_all_trials == 1
-        plot_data(trial_list(1), moments_var_list, subject_folder, events_folder, file_path_end, y_label, subj_mass, BW_norm, calc)
+        plot_data(trial_list, moments_var_list, subject_folder, events_folder, file_path_end, y_label, subj_mass, BW_norm, calc)
     end
     if plot_std == 1
         [data_r, data_l] = collect_data(trial_list, moments_var_list, subject_folder, events_folder, file_path_end, y_label, subj_mass, BW_norm, calc);
@@ -237,7 +239,9 @@ end
 % SO
 if plot_SO == 1
     calc = 'SO';
-    muscles_var_list = {'tib_ant_r', 'med_gas_r',  'lat_gas_r', 'bifemlh_r','rect_fem_r','soleus_r', 'tib_ant_l', 'med_gas_l',  'lat_gas_l', 'bifemlh_l','rect_fem_l','soleus_l'};
+%     muscles_var_list = {'tib_ant_r', 'med_gas_r',  'lat_gas_r', 'bifemlh_r','rect_fem_r','soleus_r', 'tib_ant_l', 'med_gas_l',  'lat_gas_l', 'bifemlh_l','rect_fem_l','soleus_l'};
+    muscles_var_list = {'psoas_r', 'med_gas_r',  'lat_gas_r', 'bifemlh_r','rect_fem_r','soleus_r', 'glut_max1_r', 'glut_max2_r', 'glut_max3_r', 'psoas_l', 'med_gas_l',  'lat_gas_l', 'bifemlh_l','rect_fem_l','soleus_l', 'glut_max1_r', 'glut_max2_r', 'glut_max3_r'};
+
     %                     'tibialis anterior', 'gastrocnemius medialis',  'gastrocnemius lateralis', 'flexor hallucis','rectus femoris','soleus'};
     activation = 1;
     forces = 1;
@@ -323,7 +327,7 @@ if plot_SO == 1
 end
 
 % JRF
-if plot_JRF == 1
+if plot_JRL == 1
     calc = 'JCF';
     filename = 'joint_contact_forces_';
     joints_var_list = {'hip_r_on_pelvis_in_pelvis', 'knee_r_on_tibia_r_in_tibia_r', 'ankle_r_on_talus_r_in_talus_r', 'hip_l_on_pelvis_in_pelvis', 'knee_l_on_tibia_l_in_tibia_l', 'ankle_l_on_talus_l_in_talus_l'};
@@ -333,6 +337,7 @@ if plot_JRF == 1
     y_label = 'joint contact force [N/BW]';
 
     if plot_all_trials == 1
+        plot_JRF(trial_list, joints_var_list, subject_folder, events_folder, file_path_end, y_label, subj_mass, BW_norm, calc)
     end
     if plot_std == 1
     [data_r, data_l] = collect_JRF(trial_list, joints_var_list, subject_folder, events_folder, file_path_end, y_label, subj_mass, BW_norm, calc);
@@ -370,30 +375,30 @@ if plot_JRF == 1
 end
 
 
-%% 
-% 
-% paths = {'C:\Users\Balu\Nextcloud\Documents\MA\Daten\P01\pre\output automization';
-%           'C:\Users\Balu\Nextcloud\Documents\MA\Daten\P01\post\output automization';
-%           'C:\Users\Balu\Nextcloud\Documents\MA\Daten\P02\pre\output automization';
-%           'C:\Users\Balu\Nextcloud\Documents\MA\Daten\P02\post\output automization';
-%           'C:\Users\Balu\Nextcloud\Documents\MA\Daten\P03\pre\output automization';
-%           'C:\Users\Balu\Nextcloud\Documents\MA\Daten\P03\post\output automization';
-%           'C:\Users\Balu\Nextcloud\Documents\MA\Daten\P04\pre\output automization';
-%           'C:\Users\Balu\Nextcloud\Documents\MA\Daten\P04\post\output automization';
-%           'C:\Users\Balu\Nextcloud\Documents\MA\Daten\P05\pre\output automization';
-%           'C:\Users\Balu\Nextcloud\Documents\MA\Daten\P05\post\output automization';
-%           'C:\Users\Balu\Nextcloud\Documents\MA\Daten\TD01\output automization';
-%           'C:\Users\Balu\Nextcloud\Documents\MA\Daten\TD04\output automization';
-%           'C:\Users\Balu\Nextcloud\Documents\MA\Daten\TD06\output automization';
-%           'C:\Users\Balu\Nextcloud\Documents\MA\Daten\TD07\output automization';};
+%% save data to struct
+if save_struct == 1
+% paths = {'C:\Users\Balu\Nextcloud\Documents\MA\Code\Kira_MSc_data\P01\pre\output automization';
+%           'C:\Users\Balu\Nextcloud\Documents\MA\Code\Kira_MSc_data\P01\post\output automization';
+%           'C:\Users\Balu\Nextcloud\Documents\MA\Code\Kira_MSc_data\P02\pre\output automization';
+%           'C:\Users\Balu\Nextcloud\Documents\MA\Code\Kira_MSc_data\P02\post\output automization';
+%           'C:\Users\Balu\Nextcloud\Documents\MA\Code\Kira_MSc_data\P03\pre\output automization';
+%           'C:\Users\Balu\Nextcloud\Documents\MA\Code\Kira_MSc_data\P03\post\output automization';
+%           'C:\Users\Balu\Nextcloud\Documents\MA\Code\Kira_MSc_data\P04\pre\output automization';
+%           'C:\Users\Balu\Nextcloud\Documents\MA\Code\Kira_MSc_data\P04\post\output automization';
+%           'C:\Users\Balu\Nextcloud\Documents\MA\Code\Kira_MSc_data\P05\pre\output automization';
+%           'C:\Users\Balu\Nextcloud\Documents\MA\Code\Kira_MSc_data\P05\post\output automization';
+%           'C:\Users\Balu\Nextcloud\Documents\MA\Code\Kira_MSc_data\TD01\output automization';
+%           'C:\Users\Balu\Nextcloud\Documents\MA\Code\Kira_MSc_data\TD04\output automization';
+%           'C:\Users\Balu\Nextcloud\Documents\MA\Code\Kira_MSc_data\TD06\output automization';
+%           'C:\Users\Balu\Nextcloud\Documents\MA\Code\Kira_MSc_data\TD07\output automization';};
 % 
 % for i = 1:length(paths)
 %     outputPath = paths{i};
 %     saveDataToStruct(outputPath)
 % end
-% 
-% 
-% 
+
+
+% saveDataToStruct('C:\Users\Balu\Nextcloud\Documents\MA\Code\Kira_MSc_data\TD01\output with trunc muscles')
 % 
 % 
 % 
@@ -401,11 +406,11 @@ end
 % figure;plot(data.IK.FINAL_PERSONALISEDTORSIONS_scaled_final.T_Dynamic08_1_right.ankle_angle_r)
 % 
 % % trial that starts at 1 on c3d
-% stoFile = 'C:\Users\Balu\Nextcloud\Documents\MA\Daten\P03\post\output automization\FINAL_PERSONALISEDTORSIONS_scaled_final\Dynamic08\Output\IK\IK.mot';
+% stoFile = 'C:\Users\Balu\Nextcloud\Documents\MA\Code\Kira_MSc_data\P03\post\output automization\FINAL_PERSONALISEDTORSIONS_scaled_final\Dynamic08\Output\IK\IK.mot';
 % frame_first_c3d_in_openSim_frame = get_frame_zero(stoFile);
 % 
 % % trial that first event - initial frame < intial frame
-% stoFile = 'C:\Users\Balu\Nextcloud\Documents\MA\Daten\P01\post\output automization\FINAL_PERSONALISEDTORSIONS_scaled_final\Dynamic08\Output\IK\IK.mot';
+% stoFile = 'C:\Users\Balu\Nextcloud\Documents\MA\Code\Kira_MSc_data\P01\post\output automization\FINAL_PERSONALISEDTORSIONS_scaled_final\Dynamic08\Output\IK\IK.mot';
 % frame_first_c3d_in_openSim_frame = get_frame_zero(stoFile);
 
-
+end
