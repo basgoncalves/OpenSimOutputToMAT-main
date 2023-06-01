@@ -1,4 +1,5 @@
 function stats_Kira()
+<<<<<<< HEAD
 
 
 % add_repos_to_path
@@ -6,6 +7,14 @@ function stats_Kira()
 S = get_subjects;
 
 gather_data_in_struct = false;
+=======
+add_repos_to_path
+[Results] = get_data_struct; 
+S = get_subjects;
+
+
+gather_data_in_struct = true;
+>>>>>>> 713792a83d0f5af9a184a2dc79b6dfd75cdb5eb1
 run_stats = true;
 plot_JRF_curve_and_peaks = false;
 scatter_peaks_angles = false; two_peaks = false;
@@ -45,6 +54,7 @@ end
 %% stats
 if run_stats
     load([get_main_dir fp 'results.mat'])
+<<<<<<< HEAD
     legs = {'left'; 'right'};
 sessions = {'session1'; 'session2'; 'session3'};
     joints = {'KCF'; 'HCF'};
@@ -244,12 +254,26 @@ if multiple_regress
 % clear X1FIT X2FIT YFIT
 
 end
+=======
+    
+    Results = calculate_peaks(Results);                                                                             
+
+    load_participant_characteristics()
+
+    x = Results.JRL.session1.left.peak_HCF';
+    y = Results.JRL.session1.right.peak_HCF';
+    [rsquared,pvalue, p1,rlo,rup] = plotCorr (x,y,1,0.05);  
+>>>>>>> 713792a83d0f5af9a184a2dc79b6dfd75cdb5eb1
 
 end
 
 %% -------------------------------------------------------------------------------------------------------------- %
 % ---------------------------------------------------- FUCNTIONS ------------------------------------------------ %
 % --------------------------------------------------------------------------------------------------------------- %
+<<<<<<< HEAD
+=======
+
+>>>>>>> 713792a83d0f5af9a184a2dc79b6dfd75cdb5eb1
 function out  = fp
 out  = filesep;
 
@@ -263,7 +287,15 @@ disp([OpenSimOutputToMAT_Dir ' added to path'])
 
 
 msk_modellingDir  = [fileparts(OpenSimOutputToMAT_Dir) '\MSKmodelling'];
+<<<<<<< HEAD
 rmpath(genpath(msk_modellingDir))
+=======
+
+rmpath(genpath(msk_modellingDir))
+
+addpath(genpath(msk_modellingDir))
+
+>>>>>>> 713792a83d0f5af9a184a2dc79b6dfd75cdb5eb1
 disp([msk_modellingDir ' added to path'])
 
 % --------------------------------------------------------------------------------------------------------------- %
@@ -277,6 +309,10 @@ S = struct;
 S.subjects = {getfolders(get_main_dir).name};
 S.sessions = {'\pre', '\post', ''};
 
+<<<<<<< HEAD
+=======
+
+>>>>>>> 713792a83d0f5af9a184a2dc79b6dfd75cdb5eb1
 % --------------------------------------------------------------------------------------------------------------- %
 function load_participant_characteristics()
 cd(get_main_dir)
@@ -289,6 +325,10 @@ Results = struct;
 leg = {'right','left'};
 for i = 1:3
     for l = 1:numel(leg)
+<<<<<<< HEAD
+=======
+
+>>>>>>> 713792a83d0f5af9a184a2dc79b6dfd75cdb5eb1
         session = ['session' num2str(i)];
         Results.IK.(session).(leg{l}) = struct;
         Results.ID.(session).(leg{l}) = struct;
@@ -299,6 +339,18 @@ for i = 1:3
     end
 end
 
+<<<<<<< HEAD
+=======
+
+        Results.IK.(['session' num2str(i)]).(leg{l}) = struct;
+        Results.ID.(['session' num2str(i)]).(leg{l}) = struct;
+        Results.SO.(['session' num2str(i)]).(leg{l}) = struct;
+        Results.SO_Activation.(['session' num2str(i)]).(leg{l}) = struct;
+        Results.JRL.(['session' num2str(i)]).(leg{l}) = struct;
+    end
+end
+
+>>>>>>> 713792a83d0f5af9a184a2dc79b6dfd75cdb5eb1
 % --------------------------------------------------------------------------------------------------------------- %
 function Paths = get_data_paths(iSubj,iSess)
 
@@ -312,17 +364,32 @@ Paths.trials    = cellfun(@(c)[session_path fp c],trialNames,'uni',false);
 Paths.trialNames = trialNames;
 Paths.matResults = [fileparts(session_path) fp 'dataStruct_ErrorScores_no_trials_removed.mat'];
 
+<<<<<<< HEAD
+=======
+% --------------------------------------------------------------------------------------------------------------- %
+% function save_log()
+
+
+>>>>>>> 713792a83d0f5af9a184a2dc79b6dfd75cdb5eb1
 % --------------------------------------------------------------------------------------------------------------- %
 function [raw,tnorm,results_struct] = time_norm_per_session(data_struct,results_struct)
 % data_struct = a struct similar to the output of load_sto_file
 
+<<<<<<< HEAD
 
 % add mass to results_struct AND remove "
 
+=======
+% add mass to results_struct AND remove "
+>>>>>>> 713792a83d0f5af9a184a2dc79b6dfd75cdb5eb1
 trialNames = fields(data_struct);
 if contains(trialNames{1},'mass')
     trialNames(1) = [];
 end
+<<<<<<< HEAD
+=======
+
+>>>>>>> 713792a83d0f5af9a184a2dc79b6dfd75cdb5eb1
 
 % remove variables that contain calc
 variables  = fields(data_struct.(trialNames{1}));
@@ -332,6 +399,18 @@ variables = variables(~contains(variables,'calc'));
 raw   = struct; raw.left = struct; raw.right = struct;
 tnorm = struct; tnorm.left = struct; tnorm.right = struct;
 
+<<<<<<< HEAD
+=======
+variables  = fields(data_struct.(trialNames{1}));
+variables = variables(~contains(variables,'calc')); % remove variables that contain calc
+
+
+raw   = struct; raw.left = struct; raw.right = struct;
+tnorm = struct; tnorm.left = struct; tnorm.right = struct;
+
+
+
+>>>>>>> 713792a83d0f5af9a184a2dc79b6dfd75cdb5eb1
 % crete the full struct;
 for iVar = variables'
     raw.right.(iVar{1}) = [];
@@ -369,7 +448,11 @@ for iVar = variables'
     raw.left.(iVar{1})(raw.left.(iVar{1})==0) = NaN;
 end
 
+<<<<<<< HEAD
 % mean tnorm data
+=======
+% mean tnorm data 
+>>>>>>> 713792a83d0f5af9a184a2dc79b6dfd75cdb5eb1
 for iVar = variables'
     tnorm.right.(iVar{1}) = mean(tnorm.right.(iVar{1}),2);
     tnorm.left.(iVar{1})  = mean(tnorm.left.(iVar{1}),2);
@@ -633,6 +716,7 @@ for col = 1: size (Data,2)
 
     TimeNormalizedData(1:101,col)= interp1(timeTrial,currentData,Tnorm)';
 end
+<<<<<<< HEAD
 
 % --------------------------------------------------------------------------------------------- %
 function [ha, pos,FirstCol,LastRow,LastCol] = tight_subplotBG(Nh, Nw, gap, marg_h, marg_w,Size)
@@ -818,3 +902,5 @@ for i = 1:N
         yticklabels('')
     end
 end
+=======
+>>>>>>> 713792a83d0f5af9a184a2dc79b6dfd75cdb5eb1
