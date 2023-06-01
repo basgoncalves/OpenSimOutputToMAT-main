@@ -490,6 +490,11 @@ for col = 1:size(Data, 2)
     TimeNormalizedData(1:101, col) = interp1(timeTrial, currentData, Tnorm)';
 end
 
+
+
+
+
+
 % --------------------------------------------------------------------------------------------------------------- %
 % ---------------------------------------- PLOTTING FUNCTIONS --------------------------------------------------- %
 % --------------------------------------------------------------------------------------------------------------- %
@@ -966,6 +971,12 @@ for i = 1:N
     end
 end
 
+
+
+
+
+
+
 % --------------------------------------------------------------------------------------------------------------- %
 % ------------------------------------------- STATS FUNCTIONS --------------------------------------------------- %
 % --------------------------------------------------------------------------------------------------------------- %
@@ -1023,16 +1034,22 @@ end
 tight_subplot_ticks(ha,0,0)
 
 % --------------------------------------------------------------------------------------------------------------- %
-function add_spm_to_plot(SPM,colors)
+function add_spm_to_plot(SPM,colors,yPosition)
 
 comparisons = fields(SPM);
 nComp = length(comparisons);
+
+% if no colors are selected 
 if nargin < 2
     colors = getColor('viridis',nComp);
 elseif length(colors) ~= length(comparisons) 
     warnign on 
     warning('number of olors and number of comparions do not match. Auto colors ')
     colors = getColor('viridis',nComp);
+end
+
+if nargin < 3
+    yPosition = 110;
 end
 
 for i = 1:nComp
@@ -1042,31 +1059,24 @@ for i = 1:nComp
     x = SPM.(comparisons{i}).sig_idx;
     x = [1:10, 20:34, 50:68];
     
-    % Find the indices where consecutive values change
+    % Find the indices where consecutive values change & split the vector into sections
     diff_indices = find(diff(x) ~= 1);
-
-    % Split the vector into sections
     sections = mat2cell(x, 1, diff([0, diff_indices, numel(x)]));
 
     % plot each section the sections
     for i = 1:numel(sections)
-        x = insertDecimalPoints(sections{i},6);
-        y = repmat(110, size(x_values));
-        
+        x = sections{i};
+        y = repmat(110, size(x));
+
         % Define the position and size of the rectangle
-        x_rect = x_values(1);
-        y_rect = min(ylim) - range(ylim)*0.1;
-        width = x_values;
-        height = 0.03;
+        x_rect = x(1);
+        y_rect = yPosition;
+        width = length(x);
+        height = 0.1;
 
         % Draw the rectangle
         rectangle('Position', [x_rect, y_rect, width, height], 'FaceColor', colors(i,:), 'EdgeColor','none')
     end
-
-
-
-    plot(x, y, 'o', 'MarkerFaceColor', 'b');  % Plot the points with blue markers
-
 end
 
 
