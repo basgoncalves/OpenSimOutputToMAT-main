@@ -1,25 +1,29 @@
 
 function stats_Kira()
 add_repos_to_path
+
 [Results] = create_data_struct;
 S = get_subjects;
 
-gather_data_in_struct = true;
+gather_data_in_struct = false;
 run_stats = true;
 
 %% organise data in struct
 if gather_data_in_struct
     Analyses = get_analyses;
-    for iSubj = 1:length(S.subjects)
-        for iSess = 1:length(S.sessions)
 
-            [Logic, Path] = get_data_paths(iSubj, iSess);
-            if ~Logic; continue; end
+    for iSess = 1:length(S.sessions)
+        for iAnal = 1:length(Analyses)
+            curr_analysis = Analyses{iAnal};
+            for iSubj = 1:length(S.subjects)
 
-            load(Path.matResults)
-            session = ['session' num2str(iSess)];
-            for iAnal = 1:length(Analyses)
-                curr_analysis = Analyses{iAnal};
+                % load paths and whether the subject/session exist
+                [Logic, Path] = get_data_paths(iSubj, iSess);
+                if ~Logic; continue; end
+
+                load(Path.matResults)
+                session = ['session' num2str(iSess)];
+
                 data_struct = data.(curr_analysis).FINAL_PERSONALISEDTORSIONS_scaled_final;
                 results_struct = Results.(curr_analysis).(session);
 
@@ -48,7 +52,7 @@ end
 if run_stats
 
     load([get_main_dir fp 'results.mat'])
-    Results = calculate_peaks(Results);
+    Results = calculatePeaks(Results);
 
     load_participant_characteristics()
 
@@ -56,7 +60,7 @@ if run_stats
     %     y = Results.JRL.session1.right.peak_HCF';
     %     [rsquared,pvalue, p1,rlo,rup] = plotCorr (x,y,1,0.05);
 
-    plot_muscle_forces(Results)
+    plotMuscleForces(Results,'Normalised')
     
 end
 
@@ -90,9 +94,14 @@ OpenSimOutputToMAT_Dir = fileparts(activeFile);
 addpath(genpath(OpenSimOutputToMAT_Dir))
 disp([OpenSimOutputToMAT_Dir ' added to path'])
 
+addMSK = true;
+
 msk_modellingDir = [fileparts(OpenSimOutputToMAT_Dir) '\MSKmodelling'];
-if isinpath(msk_modellingDir)
+if isinpath(msk_modellingDir) && ~addMSK
     rmpath(genpath(msk_modellingDir))
+    disp([msk_modellingDir ' removed from path'])
+else
+    addpath(genpath(msk_modellingDir))
     disp([msk_modellingDir ' added to path'])
 end
 
@@ -201,10 +210,10 @@ for iSess = 1:length(S.sessions)
                     
                     % if data exists assign column with 1, if not assign 0
                     if Logic == 1
-                        Results.(curr_analysis).(session).(legs{l}).(current_variable)(:,iSubj) = 1;
+                        Results.(curr_analysis).(session).(legs{l}).(current_variable)(:,iSubj) = ones(101,1);
                         Results.Subject.(session)(iSubj) = 1;
                     else
-                        Results.(curr_analysis).(session).(legs{l}).(current_variable)(:,iSubj) = 0;
+                        Results.(curr_analysis).(session).(legs{l}).(current_variable)(:,iSubj) = zeros(101,1);
                         Results.Subject.(session)(iSubj) = 0;
                     end
                     
@@ -326,10 +335,10 @@ for iVar = variables'
         rows = [1:length(tnorm.(leg).(iVar{1}))]';
         
         % if data from "iVar" is empty, make it NaN
-        if ~isnan(results_struct.(leg).(iVar{1})(iCol))
+        if ~isnan(results_struct.(leg).(iVar{1})(1,iCol))
             results_struct.(leg).(iVar{1})(rows,iCol) = tnorm.(leg).(iVar{1});
         else
-            results_struct.(leg).(iVar{1})(:,iCol) = NaN;
+            results_struct.(leg).(iVar{1})(rows,iCol) = NaN;
             disp([leg ' ' iVar{1} ' did not exist']);
         end
     end
@@ -351,7 +360,10 @@ for iSess = 1:length(S.sessions)
 
     % number of subject indices = number of columns in each muscle per session
     for iCol = 1:length(subject_idx)
-        iSubj = subject_idx(iCol);
+        if subject_idx(iCol) == 0
+            continue
+        end
+        iSubj = iCol;
         [Logic, Path] = get_data_paths(iSubj, iSess);
         % get max isometric force for each muscle in the model path
         mvic = get_max_isom_force_per_muscle(Path.osimModel);
@@ -381,7 +393,7 @@ for iSess = 1:length(S.sessions)
 end
 
 % --------------------------------------------------------------------------------------------------------------- %
-function Results = calculate_peaks(Results)
+function Results = calculatePeaks(Results)
 
 Legs = {'right','left'};
 
@@ -392,16 +404,16 @@ for i = 1:3
 
         % find peak HCF
         Results.JRL.(session).(leg).HCF = sum3D(Results.JRL.(session).(leg), ['hip_' leg(1) '_on_pelvis_in_pelvis']);
-        Results.JRL.(session).(leg).peak_HCF = calc_max(Results.JRL.(session).(leg).HCF);
+        Results.JRL.(session).(leg).peak_HCF = calcMaxMovAverage(Results.JRL.(session).(leg).HCF);
 
         % find peak KCF
         Results.JRL.(session).(leg).KCF = sum3D(Results.JRL.(session).(leg), ['knee_' leg(1) '_on_tibia_' leg(1) '_in_tibia_' leg(1)]);
-        Results.JRL.(session).(leg).peak_KCF = calc_max(Results.JRL.(session).(leg).KCF);
+        Results.JRL.(session).(leg).peak_KCF = calcMaxMovAverage(Results.JRL.(session).(leg).KCF);
 
         Muscles = fields(Results.SO.(session).(leg));
         for m = 1:length(Muscles)
             muscle = Muscles{m};
-            Results.SO.(session).(leg).(['peak_' muscle]) = calc_max(Results.SO.(session).(leg).(muscle));
+            Results.SO.(session).(leg).(['peak_' muscle]) = calcMaxMovAverage(Results.SO.(session).(leg).(muscle));
         end
 
     end
@@ -415,8 +427,8 @@ z = Results_substruct.([variable '_fz']);
 
 out = sqrt(x.^2 + y.^2 + z.^2);
 
-%------------------ calc max moving average
-function out = calc_max(time_curve)
+% --------------------------------------------------------------------------------------------------------------- %
+function out = calcMaxMovAverage(time_curve)
 
 out = max(movmean(time_curve,5));
 
@@ -441,6 +453,145 @@ if nargin > 1
         folders = folders(contains({folders.name},target_string));
     else
         folders = folders(contains({folders.name},target_string,"IgnoreCase",true));
+    end
+end
+
+% --------------------------------------------------------------------------------------------------------------- %
+function TimeNormalizedData = TimeNorm(Data, fs)
+% TimeNorm: Perform time normalization on the input data
+%   Data: Input data matrix
+%   fs: Sampling frequency
+
+TimeNormalizedData = [];
+
+% Loop through each column of the input data
+for col = 1:size(Data, 2)
+
+    % Get the current column of data
+    currentData = Data(:, col);
+
+    % Remove any NaN values from the current column
+    currentData(isnan(currentData)) = [];
+
+    % If length of the current column is less than 3, assign NaN values to the corresponding column in the output matrix
+    if length(currentData) < 3
+        TimeNormalizedData(1:101, col) = NaN;
+        continue; % Skip to the next iteration of the loop
+    end
+
+    % Define time values for the current trial
+    timeTrial = 0 : 1/fs : size(currentData, 1)/fs;
+    timeTrial(end) = []; % Remove the last time point
+
+    % Generate normalized time values
+    Tnorm = timeTrial(end)/101 : timeTrial(end)/101 : timeTrial(end);
+
+    % Perform interpolation to obtain the time-normalized data
+    TimeNormalizedData(1:101, col) = interp1(timeTrial, currentData, Tnorm)';
+end
+
+
+
+
+
+
+% --------------------------------------------------------------------------------------------------------------- %
+% ---------------------------------------- PLOTTING FUNCTIONS --------------------------------------------------- %
+% --------------------------------------------------------------------------------------------------------------- %
+function [cMat,LineStyles,Marker] = getColor (pallet_name,nColors)
+
+if nColors>163
+    error('colorBG function only works for n2 =<63')
+end
+
+if nargin < 1
+    cMat = convertRGB([176, 104, 16; ...
+        16, 157, 176; ...
+        136, 16, 176;176,...
+        16, 109;31, 28, 28]);  % color scheme 2 (Bas)
+else
+
+    switch pallet_name
+
+        case 'prism';   cMat = prism;
+        case 'parula';  cMat = parula;
+        case 'flag';    cMat = flag;
+        case 'hsv';     cMat = hsv;
+        case 'hot';     cMat = hot;
+        case 'cool';    cMat = cool;
+        case 'spring';  cMat = spring;
+        case 'summer';  cMat = summer;
+        case 'autumn';  cMat = autumn;
+        case 'winter';  cMat = winter;
+        case 'gray';    cMat = gray;
+        case 'bone';    cMat = bone;
+        case 'copper';  cMat = copper;
+        case 'pink';    cMat = pink;
+        case 'lines';   cMat = lines;
+        case 'jet';     cMat = jet;
+        case 'colorcube';cMat = colorcube;
+        case 'viridis'; cMat = viridis;
+    end
+    warning off
+    if nargin == 2
+        if nColors>163; error('colorBG function only works for n2 =<63'); end
+        cMat = cMat(1:length(cMat)/nColors:length(cMat),:);
+    else
+        cMat = cMat([1:64],:);
+    end
+
+    warning on
+end
+
+S = sum(cMat,2);
+Duplicates = [];
+commonLS = {'-' '--' ':' '-.'};
+commonMK = {'none' '+' 's' 'd' '^' 'v'};
+N = length(commonMK);
+LineStyles ={};Marker ={};
+for k = 1:size(cMat,1)
+    idx = find(S==S(k));
+    if length(idx)==1
+        LineStyles{k,1} = commonLS{1};
+        Marker{k,1} = commonMK{1};
+    else
+        if length(idx)/N~= ceil(length(idx)/N)
+            idx(end+1:ceil(length(idx)/N)*N)=NaN;
+        end
+        idx = reshape(idx,N,[]);
+        for col = 1:size(idx,2)
+            for row = 1:size(idx,1)
+                if ~isnan(idx(row,col))
+                    LineStyles{idx(row,col),1} = commonLS{col};
+                    Marker{idx(row,col),1} = commonMK{row};
+                end
+            end
+        end
+    end
+    idx = reshape(idx,[],1);idx(isnan(idx))=[];
+    S(idx) = NaN;
+    Duplicates(idx,1)=k;
+end
+
+% --------------------------------------------------------------------------------------------------------------- %
+function makeMyFigureNice
+
+set(gcf,'Color',[1 1 1]);
+grid off
+fig=gcf;
+N =  length(fig.Children);
+for ii = 1:N
+    set(fig.Children(ii),'box', 'off')
+    if contains(class(fig.Children(ii)),'Axes')
+        fig.Children(ii).FontName = 'Arial';
+        fig.Children(ii).Title.FontWeight = 'Normal';
+        fig.Children(ii).FontSize = 7;                                                                              % font size
+
+        for ax = 1:length(fig.Children(ii).Children)
+            if contains(class(fig.Children(ii).Children(ax)),'matlab.graphics.chart.primitive.Line')
+                fig.Children(ii).Children(ax).LineWidth = 2;
+            end
+        end
     end
 end
 
@@ -523,57 +674,25 @@ alpha 0.2                                                           % transparen
 set(f1,'FaceColor', Color,'EdgeColor','none')
 
 % --------------------------------------------------------------------------------------------------------------- %
-function TimeNormalizedData = TimeNorm(Data, fs)
-% TimeNorm: Perform time normalization on the input data
-%   Data: Input data matrix
-%   fs: Sampling frequency
-
-TimeNormalizedData = [];
-
-% Loop through each column of the input data
-for col = 1:size(Data, 2)
-
-    % Get the current column of data
-    currentData = Data(:, col);
-
-    % Remove any NaN values from the current column
-    currentData(isnan(currentData)) = [];
-
-    % If length of the current column is less than 3, assign NaN values to the corresponding column in the output matrix
-    if length(currentData) < 3
-        TimeNormalizedData(1:101, col) = NaN;
-        continue; % Skip to the next iteration of the loop
-    end
-
-    % Define time values for the current trial
-    timeTrial = 0 : 1/fs : size(currentData, 1)/fs;
-    timeTrial(end) = []; % Remove the last time point
-
-    % Generate normalized time values
-    Tnorm = timeTrial(end)/101 : timeTrial(end)/101 : timeTrial(end);
-
-    % Perform interpolation to obtain the time-normalized data
-    TimeNormalizedData(1:101, col) = interp1(timeTrial, currentData, Tnorm)';
+function plotMuscleForces(Results,Type)
+if nargin < 2
+    Type ='Normalised';
 end
-
-
-
-% --------------------------------------------------------------------------------------------------------------- %
-% ---------------------------------------- PLOTTING FUNCTIONS --------------------------------------------------- %
-% --------------------------------------------------------------------------------------------------------------- %
-function plot_muscle_forces(Results)
-
 
 legs = {'left','right'};
 for iLeg = 1:2
     leg = legs{iLeg};
     muscle_forces = Results.SO.session1.left;
     muscle_names = fields(muscle_forces);
-    muscle_names = muscle_names(endsWith(muscle_names,['_' leg(1)]));                                               % left side muscles
-    muscle_names = muscle_names(~contains(muscle_names,'peak_'));                                                   % remove peaks
-    line_colors = get_color('viridis',3);
+    
+    % only leg side muscles
+    muscle_names = muscle_names(endsWith(muscle_names,['_' leg(1)]));
+    % remove fileds that contain the term "peaks"
+    muscle_names = muscle_names(~contains(muscle_names,'peak_'));                                                   
+    line_colors = getColor('viridis',3);
 
-    muscle_names_short = {};                                                                                        % remove '_l' or '_r' from the muscle names
+    % remove '_l' or '_r' from the muscle names
+    muscle_names_short = {};
     for iMusc = 1:length(muscle_names)
         muscle_names_short{end+1,1} = muscle_names{iMusc}(1:end-2);
         if any(contains(muscle_names_short{end}(end),{'1','2','3'}))                                                % remove numebers 1,2,3
@@ -582,35 +701,102 @@ for iLeg = 1:2
     end
     muscle_names_short = unique(muscle_names_short);
 
+    % create figure with subplots
     n_subplots = length(muscle_names_short);
-    [ha, ~,FirstCol,LastRow,~] = tight_subplot(n_subplots,0,[0.008 0.01],[0.05 0.02],[],0.99);                      % create figure with subplots
-    for iSess = 1:3
-        session = ['session' num2str(iSess)];
-        muscle_forces = Results.SO.(session).(leg);
-        for iMusc = 1:length(muscle_names_short)
-            axes(ha(iMusc)); hold on
+    [ha, ~,FirstCol,LastRow,~] = tight_subplot(n_subplots,0,[0.008 0.01],[0.05 0.02],[0.08 0.01],0.99);
+  
+    % loop through all muscles
+    for iMusc = 1:length(muscle_names_short)
+        indData = {};
+        MeanForcesAllSessions = [];
+        SDForcesAllSessions = [];
+
+        % assign muscle forces for each session to one 
+        for iSess = 1:3
+            session = ['session' num2str(iSess)];
+
+            % select either absolute or normalised
+            switch Type
+                case 'Normalised'
+                    muscle_forces = Results.SO_normalised.(session).(leg);
+                case 'Absolute'
+                    muscle_forces = Results.SO.(session).(leg);
+            end
+
+            
             current_muscle = muscle_names_short{iMusc};
-            segments = muscle_names(contains(muscle_names,current_muscle));                                         % get all muscle segments for each muscle name
+
+            % get all muscle segments for each muscle name
+            segments = muscle_names(contains(muscle_names,current_muscle));                                         
             single_muscle_forces = muscle_forces.(segments{1});
+
+            % if a column has all zeros make it all NaN
+            single_muscle_forces = ZeroToNaN(single_muscle_forces);
+            
+            % average the muscle forces for each segment (for each column /trial)
             for iSeg = 2:length(segments)
-                single_muscle_forces = single_muscle_forces + muscle_forces.(segments{iSeg});                       % sum the muscle forces for each segment (for each column /trial)
+                single_muscle_forces = (single_muscle_forces + muscle_forces.(segments{iSeg}))./2;                       
             end
-            M = mean(single_muscle_forces,2);
-            SD = std(single_muscle_forces,0,2);
-            p = plotShadedSD(M,SD,line_colors(iSess,:));                                                            % plot mean and SD
-            if iSess == 1
-                t = title(current_muscle);                                                                          % title (only plot in the first loop to save time)
-                t.VerticalAlignment = 'top';
+            
+            if iSess == 3
+                single_muscle_forces(:,7)=NaN;
             end
+
+
+            % plot mean and SD
+            indData{iSess} = removeNaNrows(single_muscle_forces,2);
+            MeanForcesAllSessions(:,iSess) = nanmean(single_muscle_forces,2);
+            SDForcesAllSessions(:,iSess) = nanstd(single_muscle_forces,0,2);
+
         end
+
+        % run and save SPM plots
+        [SPM] = ttest2(indData);
+        suptitle([current_muscle ' ' leg])
+        
+        savedir = [get_main_dir() fp 'SPM_results'];
+        if ~isfolder(savedir); mkdir(savedir); end
+        saveas(gcf, [savedir fp current_muscle ' ' leg '.jpeg'])
+        close(gcf)
+        
+        % plot force-time curves and add SPM lines on the plot
+        axes(ha(iMusc)); hold on
+        p = plotShadedSD(MeanForcesAllSessions,SDForcesAllSessions,line_colors);
+        
+        add_spm_to_plot(SPM)
+       
+        % change ylim and yticks
+        ylim([0 140])
+        
+
+        % add ylable to first col
+        if any(iMusc == FirstCol)
+            yl = ylabel('% Max isom force');
+            yl.Rotation = 0;
+            yl.HorizontalAlignment ="right";
+        end
+
+        % title
+        t = title(current_muscle, 'Interpreter','none');
+        t.VerticalAlignment = 'top';
     end
-    tight_subplot_ticks (ha,LastRow,FirstCol)                                                                       % add ticks to the plots
+    
+    % add ticks to the plots
+    tight_subplot_ticks (ha,LastRow,FirstCol)                                                                       
+    
+    % add overall title for the figure 
     suptitle(['muscle forces ' leg])
+
+    % add legend
     lg = legend({'pre' 'sd' 'post' '' 'td' ''});
     lg.FontSize = 12;
     lg.Position = [0.8 0.12 0.05 0.1];
-    mmfn                                                                                                            % make figure nice (backgorund color, font size and type, etc...)
-    axes(ha(iMusc))
+
+    % make figure nice (backgorund color, font size and type, etc...)
+    makeMyFigureNice
+    
+    % save figure
+    saveas(gcf, [savedir fp 'muscle_forces' leg '.jpeg'])
 
 end
 
@@ -624,7 +810,7 @@ end
 
 % [ cMat, cStruct, cNames] = getColorSet(30); % color blind friendly
 if nargin<3 || isempty(COLOR)
-    cMat = get_color(0,size(YData,2)); % color scheme 2 (Bas)
+    cMat = getColor(0,size(YData,2)); % color scheme 2 (Bas)
 else
     cMat = COLOR;
 end
@@ -759,82 +945,6 @@ if RemoveSubPlots~=0
 end
 
 % --------------------------------------------------------------------------------------------------------------- %
-function [cMat,LineStyles,Marker] = get_color (pallet_name,nColors)
-
-if nColors>163
-    error('colorBG function only works for n2 =<63')
-end
-
-if nargin < 1
-    cMat = convertRGB([176, 104, 16; ...
-        16, 157, 176; ...
-        136, 16, 176;176,...
-        16, 109;31, 28, 28]);  % color scheme 2 (Bas)
-else
-
-    switch pallet_name
-
-        case 'prism';   cMat = prism;
-        case 'parula';  cMat = parula;
-        case 'flag';    cMat = flag;
-        case 'hsv';     cMat = hsv;
-        case 'hot';     cMat = hot;
-        case 'cool';    cMat = cool;
-        case 'spring';  cMat = spring;
-        case 'summer';  cMat = summer;
-        case 'autumn';  cMat = autumn;
-        case 'winter';  cMat = winter;
-        case 'gray';    cMat = gray;
-        case 'bone';    cMat = bone;
-        case 'copper';  cMat = copper;
-        case 'pink';    cMat = pink;
-        case 'lines';   cMat = lines;
-        case 'jet';     cMat = jet;
-        case 'colorcube';cMat = colorcube;
-        case 'viridis'; cMat = viridis;
-    end
-    warning off
-    if nargin == 2
-        if nColors>163; error('colorBG function only works for n2 =<63'); end
-        cMat = cMat(1:length(cMat)/nColors:length(cMat),:);
-    else
-        cMat = cMat([1:64],:);
-    end
-
-    warning on
-end
-
-S = sum(cMat,2);
-Duplicates = [];
-commonLS = {'-' '--' ':' '-.'};
-commonMK = {'none' '+' 's' 'd' '^' 'v'};
-N = length(commonMK);
-LineStyles ={};Marker ={};
-for k = 1:size(cMat,1)
-    idx = find(S==S(k));
-    if length(idx)==1
-        LineStyles{k,1} = commonLS{1};
-        Marker{k,1} = commonMK{1};
-    else
-        if length(idx)/N~= ceil(length(idx)/N)
-            idx(end+1:ceil(length(idx)/N)*N)=NaN;
-        end
-        idx = reshape(idx,N,[]);
-        for col = 1:size(idx,2)
-            for row = 1:size(idx,1)
-                if ~isnan(idx(row,col))
-                    LineStyles{idx(row,col),1} = commonLS{col};
-                    Marker{idx(row,col),1} = commonMK{row};
-                end
-            end
-        end
-    end
-    idx = reshape(idx,[],1);idx(isnan(idx))=[];
-    S(idx) = NaN;
-    Duplicates(idx,1)=k;
-end
-
-% --------------------------------------------------------------------------------------------------------------- %
 function tight_subplot_ticks (ha,xt,yt)
 % tight_subplot_ticks adds xticklabels and yticklables to the assigned
 % subplots in "ha" (if xt OR yt == 1, add labels to all subplots)
@@ -861,42 +971,127 @@ for i = 1:N
     end
 end
 
+
+
+
+
+
+
 % --------------------------------------------------------------------------------------------------------------- %
-function mmfn % make my figure nice
+% ------------------------------------------- STATS FUNCTIONS --------------------------------------------------- %
+% --------------------------------------------------------------------------------------------------------------- %
+function [SPM] = ttest2(indData)
 
-set(gcf,'Color',[1 1 1]);
-grid off
-fig=gcf;
-N =  length(fig.Children);
-for ii = 1:N
-    set(fig.Children(ii),'box', 'off')
-    if contains(class(fig.Children(ii)),'Axes')
-        fig.Children(ii).FontName = 'Arial';
-        fig.Children(ii).Title.FontWeight = 'Normal';
-        fig.Children(ii).FontSize = 7;                                                                              % font size
+n_groups = length(indData);
+combinations = nchoosek([1:n_groups],2); 
+Alpha = 0.05;%/size(combinations,1);
 
-        for ax = 1:length(fig.Children(ii).Children)
-            if contains(class(fig.Children(ii).Children(ax)),'matlab.graphics.chart.primitive.Line')
-                fig.Children(ii).Children(ax).LineWidth = 2;
-            end
-        end
+ha = tight_subplot(1,n_groups,[],[],[],[0.05 0.3 0.9 0.5]);
+SPM = struct;
+count = 0;
+for iComb = combinations'
+    count = count + 1;
+    Dataset1 = indData{iComb(1)};
+    Dataset2 = indData{iComb(2)};
+    
+    % run SPM tests
+    spmi = spm1d.stats.ttest2(Dataset1',Dataset2');
+    spmi = spmi.inference(Alpha);
+    
+    comparison_name = [num2str(iComb(1)) '_VS_' num2str(iComb(2))];
+
+    % SPM plot with p-values and t-values threshold
+    axes(ha(count))
+    spmi.plot; spmi.plot_p_values;
+    spmi.plot_threshold_label;
+    title(comparison_name,'Interpreter','none')
+
+    % from the axis, find the index of the siginifant points and it's p-value
+    LinesPlot = ha(count).Children; 
+    significant_idx=[]; 
+    p_value_idx=[];
+    for iLine = 1:length(LinesPlot)
+
+        %  find indexes of patches (signficand shaded areas)   
+        if contains(class(LinesPlot(iLine)),'Patch'); significant_idx(end+1) = iLine; end      
+
+        %  find indexes of tesxt with 'P = ' 
+        if contains(class(LinesPlot(iLine)),'Text') && contains(LinesPlot(iLine).String,'p '); p_value_idx(end+1) = iLine; end      
     end
+
+    % add spmi results to final struct
+    SPM.(['comp_' comparison_name]) = struct;
+    flds_spmi = fields(spmi);
+    for i = 1:length(flds_spmi)
+        curr_fld = flds_spmi{i};
+        SPM.(['comp_' comparison_name]).(curr_fld) = spmi.(curr_fld);    
+    end
+
+    % add the significance vectors (idx and 
+    SPM.(['comp_' comparison_name]).sig_idx = significant_idx;
+    SPM.(['comp_' comparison_name]).p_idx = p_value_idx;
+end
+tight_subplot_ticks(ha,0,0)
+
+% --------------------------------------------------------------------------------------------------------------- %
+function add_spm_to_plot(SPM,colors)
+
+comparisons = fields(SPM);
+nComp = length(comparisons);
+if nargin < 2
+    colors = getColor('viridis',nComp);
+elseif length(colors) ~= length(comparisons) 
+    warnign on 
+    warning('number of olors and number of comparions do not match. Auto colors ')
+    colors = getColor('viridis',nComp);
+end
+
+for i = 1:nComp
+
+    % get the x positions of significant differences for each comparisons
+    % and create a similar vector y at height 110
+    x = SPM.(comparisons{i}).sig_idx;
+    x = [1:10, 20:34, 50:68];
+    
+    % Find the indices where consecutive values change
+    diff_indices = find(diff(x) ~= 1);
+
+    % Split the vector into sections
+    sections = mat2cell(x, 1, diff([0, diff_indices, numel(x)]));
+
+    % plot each section the sections
+    for i = 1:numel(sections)
+        x = insertDecimalPoints(sections{i},6);
+        y = repmat(110, size(x_values));
+
+        % Define the position and size of the rectangle
+        x_rect = x_values(1);
+        y_rect = min(ylim) - range(ylim)*0.1;
+        width = x_values;
+        height = 0.03;
+
+        % Draw the rectangle
+        rectangle('Position', [x_rect, y_rect, width, height], 'FaceColor', colors(i,:), 'EdgeColor','none')
+    end
+
+
+
+    plot(x, y, 'o', 'MarkerFaceColor', 'b');  % Plot the points with blue markers
+
 end
 
 
+% --------------------------------------------------------------------------------------------------------------- %
+function x_new = insertDecimalPoints(x,N_decimals)
+x_new = [];
+if isempty(x)
+    return
+end
 
-
-
-
-
-
-
-
-
-
-
-
-
+for i = 1:length(x)-1
+    x_new = [x_new, x(i), linspace(x(i)+0.00001, x(i+1)-0.00001, N_decimals)];
+end
+x_new = [x_new, x(end)];
 
 
 

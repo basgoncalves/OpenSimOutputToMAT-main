@@ -1,6 +1,5 @@
-clear all; close all;
-clc;
-activate_msk_modelling
+clear all; close all; clc;
+% activate_msk_modelling
 
 filePath = matlab.desktop.editor.getActiveFilename;
 OpenSimToMatDir = fileparts(fileparts(filePath));
@@ -374,7 +373,7 @@ if plot_JRF == 1
 end
 
 
-%% 
+%% saveDataToStruct
 filePath = matlab.desktop.editor.getActiveFilename;
 fileDir = fileparts(filePath);
 kiraDataDir = [fileparts(fileparts(fileDir)) '\Kira_MSc_data'];
@@ -396,10 +395,13 @@ paths = {[kiraDataDir '\P01\pre\output automization'];
 for i = 1:length(paths)
     outputPath = paths{i};
     saveDataToStruct(outputPath)
+    if i == length(paths)
+        disp('done')
+    end
 end
 
 
-
+%% RANDOM
 subject = 'TD01';
 simulationDri = [kiraDataDir '\' subject '\post\output automization\FINAL_PERSONALISEDTORSIONS_scaled_final\'];
 stoFile = [kiraDataDir '\' subject '\post\output automization\FINAL_PERSONALISEDTORSIONS_scaled_final\Dynamic08\Output\SO\_StaticOptimization_force.sto'];
