@@ -375,7 +375,6 @@ else
     error('Dim input varible must be 1 (rows) or 2 (cols)')
 end
 
-
 % --------------------------------------------------------------------------------------------------------------- %
 function Results = normalise_muscle_forces_max_isom(Results)
 
@@ -522,8 +521,17 @@ for col = 1:size(Data, 2)
     TimeNormalizedData(1:101, col) = interp1(timeTrial, currentData, Tnorm)';
 end
 
+% --------------------------------------------------------------------------------------------------------------- %
+function A = ZeroToNaN(A)
 
-
+% Loop through each column
+for col = 1:size(A, 2)
+    if all(A(:, col) == 0)
+        
+        % Replace column with NaN values
+        A(:, col) = NaN;  
+    end
+end
 
 
 
@@ -1110,7 +1118,6 @@ for i = 1:nComp
         rectangle('Position', [x_rect, y_rect, width, height], 'FaceColor', colors(i,:), 'EdgeColor','none')
     end
 end
-
 
 % --------------------------------------------------------------------------------------------------------------- %
 function x_new = insertDecimalPoints(x,N_decimals)
