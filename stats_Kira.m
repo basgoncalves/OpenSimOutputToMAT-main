@@ -533,7 +533,20 @@ for col = 1:size(A, 2)
     end
 end
 
+% --------------------------------------------------------------------------------------------------------------- %
+function muscle_names_unique = find_unique_names_no_numbers(muscle_names)
 
+% Remove the last two elements from each cell using cellfun and indexing
+muscle_names_unique = cellfun(@(x) x(1:end-2), muscle_names, 'UniformOutput', false);
+
+% remove numebers from the end
+for i = 1:numel(muscle_names_unique)
+    iMusc = muscle_names_unique{i};
+    if ~isempty(str2num(iMusc(end)))
+        muscle_names_unique{i} = muscle_names_unique{i}(1:end-1);
+    end
+end
+muscle_names_unique = unique(muscle_names_unique);
 
 % --------------------------------------------------------------------------------------------------------------- %
 % ---------------------------------------- PLOTTING FUNCTIONS --------------------------------------------------- %
@@ -714,44 +727,36 @@ alpha 0.2                                                           % transparen
 set(f1,'FaceColor', Color,'EdgeColor','none')
 
 % --------------------------------------------------------------------------------------------------------------- %
-function plotMuscleForces(Results,Type)
+function plotMuscleForces(Results,Type) % plot all muscle forces and run t-test SPM to compare (pre,post, & TD)
 if nargin < 2
     Type ='Normalised';
 end
 
 legs = {'left','right'};
-for iLeg = 1:2
-    leg = legs{iLeg};
-    muscle_forces = Results.SO.session1.left;
-    muscle_names = fields(muscle_forces);
-    
-    % only leg side muscles
-    muscle_names = muscle_names(endsWith(muscle_names,['_' leg(1)]));
-    % remove fileds that contain the term "peaks"
-    muscle_names = muscle_names(~contains(muscle_names,'peak_'));                                                   
-    line_colors = getColor('viridis',3);
+line_colors = getColor('viridis',3);
 
-    % remove '_l' or '_r' from the muscle names
-    muscle_names_short = {};
-    for iMusc = 1:length(muscle_names)
-        muscle_names_short{end+1,1} = muscle_names{iMusc}(1:end-2);
-        if any(contains(muscle_names_short{end}(end),{'1','2','3'}))                                                % remove numebers 1,2,3
-            muscle_names_short{end} = muscle_names_short{end}(1:end-1);
-        end
-    end
-    muscle_names_short = unique(muscle_names_short);
+% muscle names
+muscle_names = fields(Results.SO.session1.left);
+muscle_names = muscle_names(endsWith(muscle_names,'_l')); % only leg side muscles
+muscle_names = muscle_names(~contains(muscle_names,'peak_')); % remove fileds that contain the term "peaks"
 
-    % create figure with subplots
-    n_subplots = length(muscle_names_short);
-    [ha, ~,FirstCol,LastRow,~] = tight_subplot(n_subplots,0,[0.008 0.01],[0.05 0.02],[0.08 0.01],0.99);
-  
-    % loop through all muscles
-    for iMusc = 1:length(muscle_names_short)
+muscle_names_unique = find_unique_names_no_numbers(muscle_names);
+
+% create figure with subplots
+n_subplots = length(muscle_names_unique);
+[ha, ~,FirstCol,LastRow,~] = tight_subplot(n_subplots,0,[0.008 0.01],[0.05 0.02],[0.08 0.01],0.99);
+
+% loop through all muscles
+for iMusc = 1:length(muscle_names_unique)
+    for iLeg = 1:2
+        leg = legs{iLeg};
+
+
         indData = {};
         MeanForcesAllSessions = [];
         SDForcesAllSessions = [];
 
-        % assign muscle forces for each session to one 
+        % assign muscle forces for each session to one
         for iSess = 1:3
             session = ['session' num2str(iSess)];
 
@@ -763,21 +768,21 @@ for iLeg = 1:2
                     muscle_forces = Results.SO.(session).(leg);
             end
 
-            
-            current_muscle = muscle_names_short{iMusc};
+
+            current_muscle = muscle_names_unique{iMusc};
 
             % get all muscle segments for each muscle name
-            segments = muscle_names(contains(muscle_names,current_muscle));                                         
+            segments = muscle_names(contains(muscle_names,current_muscle));
             single_muscle_forces = muscle_forces.(segments{1});
 
             % if a column has all zeros make it all NaN
             single_muscle_forces = ZeroToNaN(single_muscle_forces);
-            
+
             % average the muscle forces for each segment (for each column /trial)
             for iSeg = 2:length(segments)
-                single_muscle_forces = (single_muscle_forces + muscle_forces.(segments{iSeg}))./2;                       
+                single_muscle_forces = (single_muscle_forces + muscle_forces.(segments{iSeg}))./2;
             end
-            
+
             if iSess == 3
                 single_muscle_forces(:,7)=NaN;
             end
@@ -793,21 +798,21 @@ for iLeg = 1:2
         % run and save SPM plots
         [SPM] = ttest2(indData);
         suptitle([current_muscle ' ' leg])
-        
+
         savedir = [get_main_dir() fp 'SPM_results'];
         if ~isfolder(savedir); mkdir(savedir); end
         saveas(gcf, [savedir fp current_muscle ' ' leg '.jpeg'])
         close(gcf)
-        
+
         % plot force-time curves and add SPM lines on the plot
         axes(ha(iMusc)); hold on
         p = plotShadedSD(MeanForcesAllSessions,SDForcesAllSessions,line_colors);
-        
+
         add_spm_to_plot(SPM)
-       
+
         % change ylim and yticks
         ylim([0 140])
-        
+
 
         % add ylable to first col
         if any(iMusc == FirstCol)
@@ -820,11 +825,11 @@ for iLeg = 1:2
         t = title(current_muscle, 'Interpreter','none');
         t.VerticalAlignment = 'top';
     end
-    
+
     % add ticks to the plots
-    tight_subplot_ticks (ha,LastRow,FirstCol)                                                                       
-    
-    % add overall title for the figure 
+    tight_subplot_ticks (ha,LastRow,FirstCol)
+
+    % add overall title for the figure
     suptitle(['muscle forces ' leg])
 
     % add legend
@@ -834,13 +839,13 @@ for iLeg = 1:2
 
     % make figure nice (backgorund color, font size and type, etc...)
     makeMyFigureNice
-    
+
     % save figure
     saveas(gcf, [savedir fp 'muscle_forces' leg '.jpeg'])
 
 end
 
-% --------------------------------------------------------------------------------------------------------------- %
+    % --------------------------------------------------------------------------------------------------------------- %
 function p = plotShadedSD(YData,SD,COLOR,Xvalues)
 % plot each column on the Mean matrix with each column on the SD matrix
 

@@ -344,6 +344,37 @@ for iVar = variables'
     end
 end
 
+
+% --------------------------------------------------------------------------------------------------------------- %
+function [out,RemovedIdx] = removeNaNrows (data, Dim)
+RemovedIdx = [];
+out = data;
+
+if nargin < 2
+    Dim = 1;
+end
+
+if Dim == 1
+    for iRow = 1:size(out,Dim)
+        if sum(isnan(out(iRow,:)))==length(out(iRow,:))
+            RemovedIdx(end+1) = iCol;
+        end
+
+    end
+    out(RemovedIdx,:)=[];
+
+elseif Dim == 2
+    for iCol = 1:size(out,Dim)
+        if sum(isnan(out(:,iCol)))==length(out(:,iCol))
+            RemovedIdx(end+1) = iCol;
+        end
+    end
+    out(:,RemovedIdx)=[];
+
+else
+    error('Dim input varible must be 1 (rows) or 2 (cols)')
+end
+
 % --------------------------------------------------------------------------------------------------------------- %
 function Results = normalise_muscle_forces_max_isom(Results)
 
@@ -490,10 +521,32 @@ for col = 1:size(Data, 2)
     TimeNormalizedData(1:101, col) = interp1(timeTrial, currentData, Tnorm)';
 end
 
+% --------------------------------------------------------------------------------------------------------------- %
+function A = ZeroToNaN(A)
 
+% Loop through each column
+for col = 1:size(A, 2)
+    if all(A(:, col) == 0)
+        
+        % Replace column with NaN values
+        A(:, col) = NaN;  
+    end
+end
 
+% --------------------------------------------------------------------------------------------------------------- %
+function muscle_names_unique = find_unique_names_no_numbers(muscle_names)
 
+% Remove the last two elements from each cell using cellfun and indexing
+muscle_names_unique = cellfun(@(x) x(1:end-2), muscle_names, 'UniformOutput', false);
 
+% remove numebers from the end
+for i = 1:numel(muscle_names_unique)
+    iMusc = muscle_names_unique{i};
+    if ~isempty(str2num(iMusc(end)))
+        muscle_names_unique{i} = muscle_names_unique{i}(1:end-1);
+    end
+end
+muscle_names_unique = unique(muscle_names_unique);
 
 % --------------------------------------------------------------------------------------------------------------- %
 % ---------------------------------------- PLOTTING FUNCTIONS --------------------------------------------------- %
@@ -674,32 +727,24 @@ alpha 0.2                                                           % transparen
 set(f1,'FaceColor', Color,'EdgeColor','none')
 
 % --------------------------------------------------------------------------------------------------------------- %
-function plotMuscleForces(Results,Type)
+function plotMuscleForces(Results,Type) % plot all muscle forces and run t-test SPM to compare (pre,post, & TD)
 if nargin < 2
     Type ='Normalised';
 end
 
 legs = {'left','right'};
+line_colors = getColor('viridis',3);
+
+% muscle names 
+muscle_names = fields(Results.SO.session1.left);  
+muscle_names = muscle_names(endsWith(muscle_names,'_l')); % only leg side muscles
+muscle_names = muscle_names(~contains(muscle_names,'peak_')); % remove fileds that contain the term "peaks"
+
+
 for iLeg = 1:2
     leg = legs{iLeg};
-    muscle_forces = Results.SO.session1.left;
-    muscle_names = fields(muscle_forces);
     
-    % only leg side muscles
-    muscle_names = muscle_names(endsWith(muscle_names,['_' leg(1)]));
-    % remove fileds that contain the term "peaks"
-    muscle_names = muscle_names(~contains(muscle_names,'peak_'));                                                   
-    line_colors = getColor('viridis',3);
-
-    % remove '_l' or '_r' from the muscle names
-    muscle_names_short = {};
-    for iMusc = 1:length(muscle_names)
-        muscle_names_short{end+1,1} = muscle_names{iMusc}(1:end-2);
-        if any(contains(muscle_names_short{end}(end),{'1','2','3'}))                                                % remove numebers 1,2,3
-            muscle_names_short{end} = muscle_names_short{end}(1:end-1);
-        end
-    end
-    muscle_names_short = unique(muscle_names_short);
+   
 
     % create figure with subplots
     n_subplots = length(muscle_names_short);
@@ -1078,7 +1123,6 @@ for i = 1:nComp
         rectangle('Position', [x_rect, y_rect, width, height], 'FaceColor', colors(i,:), 'EdgeColor','none')
     end
 end
-
 
 % --------------------------------------------------------------------------------------------------------------- %
 function x_new = insertDecimalPoints(x,N_decimals)
