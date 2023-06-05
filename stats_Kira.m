@@ -53,13 +53,9 @@ end
 if run_stats
 
     load([get_main_dir fp 'results.mat'])
+
     Results = calculatePeaks(Results);
-
     Results = add_participant_mass_to_results_struct(Results);
-
-    %     x = Results.JRL.session1.left.peak_HCF';
-    %     y = Results.JRL.session1.right.peak_HCF';
-    %     [rsquared,pvalue, p1,rlo,rup] = plotCorr (x,y,1,0.05);
 
     plotMuscleForces(Results,'Normalised')
 
@@ -145,19 +141,20 @@ sessions = fields(Results.Mass);
 
 for i = 1:length(sessions)
     current_session = sessions{i};
+
+    % create an all nan row for current session
     n_subjects = length(Results.Subject.(current_session));
-    
-    for iSubj = 1:n_subjects
-        subject_exists = Results.Subject.(current_session)(iSubj);
+    Results.Mass.(current_session) = NaN(1,n_subjects);
 
-        if subject_exists
-            Results.Mass.(current_session)(iSubj) = P.par_char.(current_session);
-        else
-              Results.Mass.(current_session)(iSubj) = NaN;
-        end
+    % find the subjects that have data for current sessions
+    session_subjects_cols = find(Results.Subject.(current_session));
 
+    for iSubj = 1:length(session_subjects_cols)
+        results_col = session_subjects_cols(iSubj);
+        Results.Mass.(current_session)(1,results_col) = P.part_char.(current_session).mass(1, iSubj);
     end
 end
+
 % --------------------------------------------------------------------------------------------------------------- %
 function [Results] = create_data_struct()
 
@@ -907,7 +904,7 @@ for iJRL = 1:length(JRL_names)
     % assign muscle forces for each session to one
     for iSess = 1:3
         session = ['session' num2str(iSess)];
-
+     
         for iLeg = 1:2
             leg = legs{iLeg};
 
@@ -921,9 +918,14 @@ for iJRL = 1:length(JRL_names)
             % if a column has all zeros make it all NaN
             single_varibale_JRL = ZeroToNaN(single_varibale_JRL);
 
+            % get mass per session (do not move outside the loop to avoid
+            % deleting first participant more than once)
+            mass_current_session = Results.Mass.(session)(~isnan(Results.Mass.(session)));
+
             % participant not good data
             if iSess == 3
                 single_varibale_JRL(:,7)=NaN;
+                mass_current_session(1) = [];
                 warning on
                 warning ('deleting data participant in column 7 for session 3')
             end
@@ -931,12 +933,20 @@ for iJRL = 1:length(JRL_names)
             % remove columns with just NaNs
             single_varibale_JRL = removeNaNrows(single_varibale_JRL,2);
 
+            % flip the contact forces for the left leg
+            if contains(leg(1),'l') && contains(current_JRL_variable(end-1:end),'fz')
+                single_varibale_JRL = -single_varibale_JRL;
+            end
+            
+            % normalise to BW
+            single_varibale_JRL_BW_normalised = single_varibale_JRL./(mass_current_session*9.81);
+
             % find dimensions of the data
-            [nRows,nCols] = size(single_varibale_JRL);
+            [nRows,nCols] = size(single_varibale_JRL_BW_normalised);
             idxCols = [size(indData{iSess},2)+1 : size(indData{iSess},2)+nCols];
 
             % add individual participant data to a cell
-            indData{iSess}(:,idxCols) = single_varibale_JRL;
+            indData{iSess}(:,idxCols) = single_varibale_JRL_BW_normalised;
 
         end
 
@@ -963,31 +973,24 @@ for iJRL = 1:length(JRL_names)
     p = plotShadedSD(MeanForcesAllSessions,SDForcesAllSessions,line_colors);
 
     % change ylim and yticks
-    ylim([0 140])
+%     ylim([0 6])
     
-    add_spm_to_plot(SPM,140)
+    add_spm_to_plot(SPM)
 
     % add ylable to first col
     if any(iJRL == FirstCol)
-        yl = ylabel('% Max isom force');
+        yl = ylabel('Joint contact forces (BW)');
         yl.Rotation = 0;
         yl.HorizontalAlignment ="right";
     end
 
     % title
-    t = title(current_muscle, 'Interpreter','none');
+    t = title(current_JRL_variable_title, 'Interpreter','none');
     t.VerticalAlignment = 'top';
 end
 
 % add ticks to the plots
-if contains(Type,'Normalised')
-    tight_subplot_ticks (ha,LastRow,FirstCol)
-else
-    tight_subplot_ticks (ha,LastRow,0)
-end
-
-% add overall title for the figure
-suptitle(['muscle forces ' Type])
+tight_subplot_ticks (ha,LastRow,0)
 
 % add legend
 lg = legend({'pre' 'sd' 'post' '' 'td' ''});
@@ -1224,11 +1227,19 @@ for iComb = combinations'
     for iLine = 1:length(LinesPlot)
 
         %  find indexes of patches (signficand shaded areas)
-        if contains(class(LinesPlot(iLine)),'Patch'); significant_idx(end+1) = iLine; end
+        if contains(class(LinesPlot(iLine)),'Patch')
+            xData = LinesPlot(iLine).XData;
+            cols = [length(significant_idx)+1:length(significant_idx) + length(xData)];
+            significant_idx(1,cols) = xData; 
+        end
 
         %  find indexes of tesxt with 'P = '
-        if contains(class(LinesPlot(iLine)),'Text') && contains(LinesPlot(iLine).String,'p '); p_value_idx(end+1) = iLine; end
+        if contains(class(LinesPlot(iLine)),'Text') && contains(LinesPlot(iLine).String,'p ')
+            p_value_idx(end+1) = str2num(LinesPlot(iLine).String(4:end));
+        end
     end
+
+    significant_idx = sort(significant_idx);
 
     % add spmi results to final struct
     SPM.(['comp_' comparison_name]) = struct;
@@ -1262,6 +1273,7 @@ end
 % y coordinates of the sig rectangle
 if nargin < 3
     yPosition = max(ylim) * 1.2;
+    ylim([min(ylim) ceil(yPosition)])
 end
 
 distance_between_rectanges = range(ylim)*0.05;
@@ -1279,7 +1291,7 @@ for iComp = 1:nComp
         sections = mat2cell(x, 1, diff([0, diff_indices, numel(x)]));
     catch
         disp('no sig dif found')
-        return
+        continue 
     end
 
     % plot each section the sections
