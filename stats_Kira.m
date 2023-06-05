@@ -23,7 +23,8 @@ if gather_data_in_struct
 
                 load(Path.matResults)
                 session = ['session' num2str(iSess)];
-
+                
+                % create single session results struct
                 data_struct = data.(curr_analysis).FINAL_PERSONALISEDTORSIONS_scaled_final;
                 results_struct = Results.(curr_analysis).(session);
 
@@ -40,7 +41,7 @@ if gather_data_in_struct
         end
     end
 
-    % add normalised values 
+    % add normalised values
     Results = normalise_muscle_forces_max_isom(Results);
 
 
@@ -54,14 +55,16 @@ if run_stats
     load([get_main_dir fp 'results.mat'])
     Results = calculatePeaks(Results);
 
-    load_participant_characteristics()
+    Results = add_participant_mass_to_results_struct(Results);
 
     %     x = Results.JRL.session1.left.peak_HCF';
     %     y = Results.JRL.session1.right.peak_HCF';
     %     [rsquared,pvalue, p1,rlo,rup] = plotCorr (x,y,1,0.05);
 
     plotMuscleForces(Results,'Normalised')
-    
+
+    plotContactForces(Results)
+
 end
 
 %% -------------------------------------------------------------------------------------------------------------- %
@@ -134,10 +137,27 @@ function Analyses = get_analyses()
 Analyses = {'IK','ID','SO','SO_Activation','JRL'};
 
 % --------------------------------------------------------------------------------------------------------------- %
-function load_participant_characteristics()
+function Results = add_participant_mass_to_results_struct(Results)
 cd(get_main_dir)
-load('participants_characteristics.mat')
+P = load('participants_characteristics.mat');
 
+sessions = fields(Results.Mass);
+
+for i = 1:length(sessions)
+    current_session = sessions{i};
+    n_subjects = length(Results.Subject.(current_session));
+    
+    for iSubj = 1:n_subjects
+        subject_exists = Results.Subject.(current_session)(iSubj);
+
+        if subject_exists
+            Results.Mass.(current_session)(iSubj) = P.par_char.(current_session);
+        else
+              Results.Mass.(current_session)(iSubj) = NaN;
+        end
+
+    end
+end
 % --------------------------------------------------------------------------------------------------------------- %
 function [Results] = create_data_struct()
 
@@ -207,7 +227,7 @@ for iSess = 1:length(S.sessions)
 
                 for iVar = 1:length(variables)
                     current_variable = variables {iVar};
-                    
+
                     % if data exists assign column with 1, if not assign 0
                     if Logic == 1
                         Results.(curr_analysis).(session).(legs{l}).(current_variable)(:,iSubj) = ones(101,1);
@@ -216,7 +236,7 @@ for iSess = 1:length(S.sessions)
                         Results.(curr_analysis).(session).(legs{l}).(current_variable)(:,iSubj) = zeros(101,1);
                         Results.Subject.(session)(iSubj) = 0;
                     end
-                    
+
                     % when it gets to the last subject, make all ZEROS == NaN
                     if iSubj == length(S.subjects)
                         curr_var_data = Results.(curr_analysis).(session).(legs{l}).(current_variable);
@@ -247,7 +267,7 @@ Path.osimModel  = [session_path fp 'model\FINAL_PERSONALISEDTORSIONS_scaled_fina
 
 Logic = isfolder(Path.output);
 if Logic == 0
-%     disp([Path.session ' does not exist'])
+    %     disp([Path.session ' does not exist'])
 end
 
 % --------------------------------------------------------------------------------------------------------------- %
@@ -333,7 +353,7 @@ for iVar = variables'
     for l = 1:numel(legs)
         leg = legs{l};
         rows = [1:length(tnorm.(leg).(iVar{1}))]';
-        
+
         % if data from "iVar" is empty, make it NaN
         if ~isnan(results_struct.(leg).(iVar{1})(1,iCol))
             results_struct.(leg).(iVar{1})(rows,iCol) = tnorm.(leg).(iVar{1});
@@ -396,6 +416,7 @@ for iSess = 1:length(S.sessions)
         end
         iSubj = iCol;
         [Logic, Path] = get_data_paths(iSubj, iSess);
+
         % get max isometric force for each muscle in the model path
         mvic = get_max_isom_force_per_muscle(Path.osimModel);
 
@@ -433,14 +454,19 @@ for i = 1:3
         session = ['session' num2str(i)];
         leg = Legs{l};
 
-        % find peak HCF
-        Results.JRL.(session).(leg).HCF = sum3D(Results.JRL.(session).(leg), ['hip_' leg(1) '_on_pelvis_in_pelvis']);
-        Results.JRL.(session).(leg).peak_HCF = calcMaxMovAverage(Results.JRL.(session).(leg).HCF);
+        % resultant and peak hip contact forces
+        Results.JRL.(session).(leg).hip_fresultant = sum3D(Results.JRL.(session).(leg), ['hip_' leg(1) '_on_pelvis_in_pelvis']);
+        Results.JRL.(session).(leg).peak_HCF = calcMaxMovAverage(Results.JRL.(session).(leg).hip_fresultant);
 
-        % find peak KCF
-        Results.JRL.(session).(leg).KCF = sum3D(Results.JRL.(session).(leg), ['knee_' leg(1) '_on_tibia_' leg(1) '_in_tibia_' leg(1)]);
-        Results.JRL.(session).(leg).peak_KCF = calcMaxMovAverage(Results.JRL.(session).(leg).KCF);
+        % knee
+        Results.JRL.(session).(leg).knee_fresultant = sum3D(Results.JRL.(session).(leg), ['knee_' leg(1) '_on_tibia_' leg(1) '_in_tibia_' leg(1)]);
+        Results.JRL.(session).(leg).peak_KCF = calcMaxMovAverage(Results.JRL.(session).(leg).knee_fresultant);
 
+        % ankle
+        Results.JRL.(session).(leg).ankle_fresultant = sum3D(Results.JRL.(session).(leg), ['ankle_' leg(1) '_on_talus_' leg(1) '_in_talus_' leg(1)]);
+        Results.JRL.(session).(leg).peak_ACF = calcMaxMovAverage(Results.JRL.(session).(leg).ankle_fresultant);
+        
+        % peak muscle forces
         Muscles = fields(Results.SO.(session).(leg));
         for m = 1:length(Muscles)
             muscle = Muscles{m};
@@ -527,9 +553,9 @@ function A = ZeroToNaN(A)
 % Loop through each column
 for col = 1:size(A, 2)
     if all(A(:, col) == 0)
-        
+
         % Replace column with NaN values
-        A(:, col) = NaN;  
+        A(:, col) = NaN;
     end
 end
 
@@ -748,17 +774,15 @@ n_subplots = length(muscle_names_unique);
 
 % loop through all muscles
 for iMusc = 1:length(muscle_names_unique)
-    for iLeg = 1:2
-        leg = legs{iLeg};
+    indData = {[] [] []};
+    MeanForcesAllSessions = [];
+    SDForcesAllSessions = [];
+    % assign muscle forces for each session to one
+    for iSess = 1:3
+        session = ['session' num2str(iSess)];
 
-
-        indData = {};
-        MeanForcesAllSessions = [];
-        SDForcesAllSessions = [];
-
-        % assign muscle forces for each session to one
-        for iSess = 1:3
-            session = ['session' num2str(iSess)];
+        for iLeg = 1:2
+            leg = legs{iLeg};
 
             % select either absolute or normalised
             switch Type
@@ -767,7 +791,6 @@ for iMusc = 1:length(muscle_names_unique)
                 case 'Absolute'
                     muscle_forces = Results.SO.(session).(leg);
             end
-
 
             current_muscle = muscle_names_unique{iMusc};
 
@@ -787,65 +810,199 @@ for iMusc = 1:length(muscle_names_unique)
                 single_muscle_forces(:,7)=NaN;
             end
 
+            % remove columns with just NaNs
+            single_muscle_forces = removeNaNrows(single_muscle_forces,2);
 
-            % plot mean and SD
-            indData{iSess} = removeNaNrows(single_muscle_forces,2);
-            MeanForcesAllSessions(:,iSess) = nanmean(single_muscle_forces,2);
-            SDForcesAllSessions(:,iSess) = nanstd(single_muscle_forces,0,2);
+            % find dimensions of the data
+            [nRows,nCols] = size(single_muscle_forces);
+            idxCols = [size(indData{iSess},2)+1 : size(indData{iSess},2)+nCols];
+
+            % add individual participant data to a cell
+            indData{iSess}(:,idxCols) = single_muscle_forces;
 
         end
 
-        % run and save SPM plots
-        [SPM] = ttest2(indData);
-        suptitle([current_muscle ' ' leg])
+        % calculate mean and SD for each group
+        MeanForcesAllSessions(:,iSess) = nanmean(indData{iSess},2);
+        SDForcesAllSessions(:,iSess) = nanstd(indData{iSess},0,2);
+    end
+    % run and save SPM plots
+    group_types = [1,1,2];
+    [SPM] = ttest_spm(indData,group_types);
+    suptitle([current_muscle])
 
-        savedir = [get_main_dir() fp 'SPM_results'];
-        if ~isfolder(savedir); mkdir(savedir); end
-        saveas(gcf, [savedir fp current_muscle ' ' leg '.jpeg'])
-        close(gcf)
+    savedir = [get_main_dir() fp 'SPM_results'];
+    if ~isfolder(savedir); mkdir(savedir); end
+    saveas(gcf, [savedir fp current_muscle ' ' leg '.jpeg'])
+    close(gcf)
 
-        % plot force-time curves and add SPM lines on the plot
-        axes(ha(iMusc)); hold on
-        p = plotShadedSD(MeanForcesAllSessions,SDForcesAllSessions,line_colors);
+    % plot force-time curves and add SPM lines on the plot
+    axes(ha(iMusc)); hold on
+    p = plotShadedSD(MeanForcesAllSessions,SDForcesAllSessions,line_colors);
 
-        add_spm_to_plot(SPM)
+    % change ylim and yticks
+    ylim([0 140])
+    
+    add_spm_to_plot(SPM,140)
 
-        % change ylim and yticks
-        ylim([0 140])
-
-
-        % add ylable to first col
-        if any(iMusc == FirstCol)
-            yl = ylabel('% Max isom force');
-            yl.Rotation = 0;
-            yl.HorizontalAlignment ="right";
-        end
-
-        % title
-        t = title(current_muscle, 'Interpreter','none');
-        t.VerticalAlignment = 'top';
+    % add ylable to first col
+    if any(iMusc == FirstCol)
+        yl = ylabel('% Max isom force');
+        yl.Rotation = 0;
+        yl.HorizontalAlignment ="right";
     end
 
-    % add ticks to the plots
-    tight_subplot_ticks (ha,LastRow,FirstCol)
-
-    % add overall title for the figure
-    suptitle(['muscle forces ' leg])
-
-    % add legend
-    lg = legend({'pre' 'sd' 'post' '' 'td' ''});
-    lg.FontSize = 12;
-    lg.Position = [0.8 0.12 0.05 0.1];
-
-    % make figure nice (backgorund color, font size and type, etc...)
-    makeMyFigureNice
-
-    % save figure
-    saveas(gcf, [savedir fp 'muscle_forces' leg '.jpeg'])
-
+    % title
+    t = title(current_muscle, 'Interpreter','none');
+    t.VerticalAlignment = 'top';
 end
 
-    % --------------------------------------------------------------------------------------------------------------- %
+% add ticks to the plots
+if contains(Type,'Normalised')
+    tight_subplot_ticks (ha,LastRow,FirstCol)
+else
+    tight_subplot_ticks (ha,LastRow,0)
+end
+
+% add overall title for the figure
+suptitle(['muscle forces ' Type])
+
+% add legend
+lg = legend({'pre' 'sd' 'post' '' 'td' ''});
+lg.FontSize = 12;
+lg.Position = [0.8 0.12 0.05 0.1];
+
+% make figure nice (backgorund color, font size and type, etc...)
+makeMyFigureNice
+
+% save figure
+saveas(gcf, [savedir fp 'muscle_forces' leg '.jpeg'])
+
+
+% --------------------------------------------------------------------------------------------------------------- %
+function plotContactForces(Results) % plot all muscle forces and run t-test SPM to compare (pre,post, & TD)
+
+legs = {'left','right'};
+line_colors = getColor('viridis',3);
+
+% JRF names containing fx,fy,fz,fresultant
+JRL_names = fields(Results.JRL.session1.left);
+JRL_names = [JRL_names(endsWith(JRL_names,{'_fx','_fy','fz','_fresultant'}))]; 
+
+% replace "_l" and "_r_" with "_leg_" to plot just the variable for a
+% single leg
+JRL_names = strrep(JRL_names,'_r_','_leg_');
+JRL_names = strrep(JRL_names,'_l_','_leg_');
+JRL_names = unique(JRL_names);
+
+% create figure with subplots
+n_subplots = length(JRL_names);
+[ha, ~,FirstCol,LastRow,~] = tight_subplot(n_subplots,0,[0.008 0.01],[0.05 0.02],[0.08 0.01],0.99);
+
+% loop through all muscles
+for iJRL = 1:length(JRL_names)
+    indData = {[] [] []};
+    MeanForcesAllSessions = [];
+    SDForcesAllSessions = [];
+    % assign muscle forces for each session to one
+    for iSess = 1:3
+        session = ['session' num2str(iSess)];
+
+        for iLeg = 1:2
+            leg = legs{iLeg};
+
+            % select either absolute or normalised
+            contact_forces = Results.JRL.(session).(leg);
+            current_JRL_variable =  strrep(JRL_names{iJRL},'_leg_',['_' leg(1) '_']);
+
+            % get all muscle segments for each muscle name
+            single_varibale_JRL = contact_forces.(current_JRL_variable);
+
+            % if a column has all zeros make it all NaN
+            single_varibale_JRL = ZeroToNaN(single_varibale_JRL);
+
+            % participant not good data
+            if iSess == 3
+                single_varibale_JRL(:,7)=NaN;
+                warning on
+                warning ('deleting data participant in column 7 for session 3')
+            end
+
+            % remove columns with just NaNs
+            single_varibale_JRL = removeNaNrows(single_varibale_JRL,2);
+
+            % find dimensions of the data
+            [nRows,nCols] = size(single_varibale_JRL);
+            idxCols = [size(indData{iSess},2)+1 : size(indData{iSess},2)+nCols];
+
+            % add individual participant data to a cell
+            indData{iSess}(:,idxCols) = single_varibale_JRL;
+
+        end
+
+        % calculate mean and SD for each group
+        MeanForcesAllSessions(:,iSess) = nanmean(indData{iSess},2);
+        SDForcesAllSessions(:,iSess) = nanstd(indData{iSess},0,2);
+    end
+
+    parts_JRL_variable = split(current_JRL_variable,'_');
+    current_JRL_variable_title = [parts_JRL_variable{1} '_' parts_JRL_variable{end}];
+
+    % run and save SPM plots
+    group_types = [1,1,2];
+    [SPM] = ttest_spm(indData,group_types);
+    suptitle([current_JRL_variable_title])
+
+    savedir = [get_main_dir() fp 'SPM_results' fp 'JRL'];
+    if ~isfolder(savedir); mkdir(savedir); end
+    saveas(gcf, [savedir fp current_JRL_variable_title '.jpeg'])
+    close(gcf)
+
+    % plot force-time curves and add SPM lines on the plot
+    axes(ha(iJRL)); hold on
+    p = plotShadedSD(MeanForcesAllSessions,SDForcesAllSessions,line_colors);
+
+    % change ylim and yticks
+    ylim([0 140])
+    
+    add_spm_to_plot(SPM,140)
+
+    % add ylable to first col
+    if any(iJRL == FirstCol)
+        yl = ylabel('% Max isom force');
+        yl.Rotation = 0;
+        yl.HorizontalAlignment ="right";
+    end
+
+    % title
+    t = title(current_muscle, 'Interpreter','none');
+    t.VerticalAlignment = 'top';
+end
+
+% add ticks to the plots
+if contains(Type,'Normalised')
+    tight_subplot_ticks (ha,LastRow,FirstCol)
+else
+    tight_subplot_ticks (ha,LastRow,0)
+end
+
+% add overall title for the figure
+suptitle(['muscle forces ' Type])
+
+% add legend
+lg = legend({'pre' 'sd' 'post' '' 'td' ''});
+lg.FontSize = 12;
+lg.Position = [0.8 0.12 0.05 0.1];
+
+% make figure nice (backgorund color, font size and type, etc...)
+makeMyFigureNice
+
+% save figure
+saveas(gcf, [savedir fp 'JointReactionLoads.jpeg'])
+
+
+
+% --------------------------------------------------------------------------------------------------------------- %
 function p = plotShadedSD(YData,SD,COLOR,Xvalues)
 % plot each column on the Mean matrix with each column on the SD matrix
 
@@ -1025,10 +1182,12 @@ end
 % --------------------------------------------------------------------------------------------------------------- %
 % ------------------------------------------- STATS FUNCTIONS --------------------------------------------------- %
 % --------------------------------------------------------------------------------------------------------------- %
-function [SPM] = ttest2(indData)
+function [SPM] = ttest_spm(indData,group_types)
+% type: 1 = independent / 2 = paired
+
 
 n_groups = length(indData);
-combinations = nchoosek([1:n_groups],2); 
+combinations = nchoosek([1:n_groups],2);
 Alpha = 0.05;%/size(combinations,1);
 
 ha = tight_subplot(1,n_groups,[],[],[],[0.05 0.3 0.9 0.5]);
@@ -1038,30 +1197,37 @@ for iComb = combinations'
     count = count + 1;
     Dataset1 = indData{iComb(1)};
     Dataset2 = indData{iComb(2)};
-    
+
     % run SPM tests
-    spmi = spm1d.stats.ttest2(Dataset1',Dataset2');
+    if group_types(iComb(1)) ==  group_types(iComb(2))
+        spmi = spm1d.stats.ttest_paired(Dataset1',Dataset2'); % if both datasets are from the same group
+        type = 'paired';
+    else
+        spmi = spm1d.stats.ttest2(Dataset1',Dataset2'); % if datasets are from different groups
+        type = '2-sample';
+    end
+
     spmi = spmi.inference(Alpha);
-    
+
     comparison_name = [num2str(iComb(1)) '_VS_' num2str(iComb(2))];
 
     % SPM plot with p-values and t-values threshold
     axes(ha(count))
     spmi.plot; spmi.plot_p_values;
     spmi.plot_threshold_label;
-    title(comparison_name,'Interpreter','none')
+    title([comparison_name ' ' type],'Interpreter','none')
 
     % from the axis, find the index of the siginifant points and it's p-value
-    LinesPlot = ha(count).Children; 
-    significant_idx=[]; 
+    LinesPlot = ha(count).Children;
+    significant_idx=[];
     p_value_idx=[];
     for iLine = 1:length(LinesPlot)
 
-        %  find indexes of patches (signficand shaded areas)   
-        if contains(class(LinesPlot(iLine)),'Patch'); significant_idx(end+1) = iLine; end      
+        %  find indexes of patches (signficand shaded areas)
+        if contains(class(LinesPlot(iLine)),'Patch'); significant_idx(end+1) = iLine; end
 
-        %  find indexes of tesxt with 'P = ' 
-        if contains(class(LinesPlot(iLine)),'Text') && contains(LinesPlot(iLine).String,'p '); p_value_idx(end+1) = iLine; end      
+        %  find indexes of tesxt with 'P = '
+        if contains(class(LinesPlot(iLine)),'Text') && contains(LinesPlot(iLine).String,'p '); p_value_idx(end+1) = iLine; end
     end
 
     % add spmi results to final struct
@@ -1069,10 +1235,10 @@ for iComb = combinations'
     flds_spmi = fields(spmi);
     for i = 1:length(flds_spmi)
         curr_fld = flds_spmi{i};
-        SPM.(['comp_' comparison_name]).(curr_fld) = spmi.(curr_fld);    
+        SPM.(['comp_' comparison_name]).(curr_fld) = spmi.(curr_fld);
     end
 
-    % add the significance vectors (idx and 
+    % add the significance vectors (idx and
     SPM.(['comp_' comparison_name]).sig_idx = significant_idx;
     SPM.(['comp_' comparison_name]).p_idx = p_value_idx;
 end
@@ -1084,43 +1250,50 @@ function add_spm_to_plot(SPM,colors,yPosition)
 comparisons = fields(SPM);
 nComp = length(comparisons);
 
-% if no colors are selected 
-if nargin < 2
+% if no colors are selected
+if nargin < 2 || isempty(colors)
     colors = getColor('viridis',nComp);
-elseif length(colors) ~= length(comparisons) 
-    warnign on 
+elseif length(colors) ~= length(comparisons)
+    warning on
     warning('number of olors and number of comparions do not match. Auto colors ')
     colors = getColor('viridis',nComp);
 end
 
+% y coordinates of the sig rectangle
 if nargin < 3
-    yPosition = 110;
+    yPosition = max(ylim) * 1.2;
 end
 
-for i = 1:nComp
+distance_between_rectanges = range(ylim)*0.05;
+
+for iComp = 1:nComp
 
     % get the x positions of significant differences for each comparisons
-    % and create a similar vector y at height 110
-    x = SPM.(comparisons{i}).sig_idx;
-    x = [1:10, 20:34, 50:68];
+    x = SPM.(comparisons{iComp}).sig_idx;
     
+%     x = [1:50,60:85]; % use to test with random x values
+
     % Find the indices where consecutive values change & split the vector into sections
-    diff_indices = find(diff(x) ~= 1);
-    sections = mat2cell(x, 1, diff([0, diff_indices, numel(x)]));
+    try
+        diff_indices = find(diff(x) ~= 1);
+        sections = mat2cell(x, 1, diff([0, diff_indices, numel(x)]));
+    catch
+        disp('no sig dif found')
+        return
+    end
 
     % plot each section the sections
     for i = 1:numel(sections)
         x = sections{i};
-        y = repmat(110, size(x));
 
         % Define the position and size of the rectangle
         x_rect = x(1);
-        y_rect = yPosition;
+        y_rect = yPosition-distance_between_rectanges*iComp;
         width = length(x);
-        height = 0.1;
+        height = distance_between_rectanges/2;
 
         % Draw the rectangle
-        rectangle('Position', [x_rect, y_rect, width, height], 'FaceColor', colors(i,:), 'EdgeColor','none')
+        rectangle('Position', [x_rect, y_rect, width, height], 'FaceColor', colors(iComp,:), 'EdgeColor','none')
     end
 end
 
