@@ -53,7 +53,7 @@ if run_stats
 sessions = {'session1'; 'session2'; 'session3'};
     joints = {'HCF'; 'KCF'; 'ACF'};
         angles = {'NSA'; 'AVA'; 'TT'};
-    lgnd = {'P02', 'P03', 'P04', 'P05';'P02', 'P03', 'P04', 'P05';'TD02', 'TD03', 'TD04',''};
+    lgnd = {'P01','P02', 'P03', 'P04', 'P05';'P01','P02', 'P03', 'P04', 'P05';'TD02', 'TD03', 'TD04',''};
    
 
     subj_charac = importdata('C:\Users\Balu\Nextcloud\Documents\MA\Code\Kira_MSc_data\participants_characteristics.mat');
@@ -503,12 +503,12 @@ for i = 1:3
 
         ind = find(val2>val1);
         for k = 1:size(ind,2)
-            temp = val1(k);
-            val1(k) = val2(k);
-            val2(k) = temp;
-            temp = loc1(k);
-            loc1(k) = loc2(k);
-            loc2(k) = temp;
+            temp = val1(ind(k));
+            val1(ind(k)) = val2(ind(k));
+            val2(ind(k)) = temp;
+            temp = loc1(ind(k));
+            loc1(ind(k)) = loc2(ind(k));
+            loc2(ind(k)) = temp;
         end
 
         Results.JRL.(session).(leg).peak_HCF_val(1,:) = val1;
@@ -537,12 +537,12 @@ for i = 1:3
 
         ind = find(val2>val1);
         for k = 1:size(ind,2)
-            temp = val1(k);
-            val1(k) = val2(k);
-            val2(k) = temp;
-            temp = loc1(k);
-            loc1(k) = loc2(k);
-            loc2(k) = temp;
+            temp = val1(ind(k));
+            val1(ind(k)) = val2(ind(k));
+            val2(ind(k)) = temp;
+            temp = loc1(ind(k));
+            loc1(ind(k)) = loc2(ind(k));
+            loc2(ind(k)) = temp;
         end
 
         Results.JRL.(session).(leg).peak_KCF_val(1,:) = val1;
