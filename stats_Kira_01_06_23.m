@@ -1,19 +1,17 @@
 function stats_Kira()
-% addpath(genpath('C:\Users\Balu\Nextcloud\Documents\MA\Code\MSKmodelling'))
+addpath(genpath('C:\Users\Balu\Nextcloud\Documents\MA\Code\MSKmodelling'))
 
 % add_repos_to_path
 [Results] = get_data_struct;
 S = get_subjects;
 
-gather_data_in_struct = true;
+gather_data_in_struct = false;
 
 run_stats =                 true;
-plot_JRF_curve_and_peaks =  true;
-scatter_peaks_angles =      true; muscles = true; two_peaks = false;
+plot_JRF_curve_and_peaks =  false;
+scatter_peaks_angles =      false; two_peaks = false;
 plot_corr =                 false;
-multiple_regress =          false; lin = true;
-plot_SPM =                  false;
-clrs = parula;
+multiple_regress =          false;
 
 %% organise data in struct
 if gather_data_in_struct
@@ -51,9 +49,9 @@ if run_stats
 
     legs = {'left'; 'right'};
 sessions = {'session1'; 'session2'; 'session3'};
-    joints = {'HCF'; 'KCF'; 'ACF'};
+    joints = {'HCF';'KCF';'ACF'};
         angles = {'NSA'; 'AVA'; 'TT'};
-    lgnd = {'P02', 'P03', 'P04', 'P05';'P02', 'P03', 'P04', 'P05';'TD02', 'TD03', 'TD04',''};
+    lgnd = {'P01', 'P02', 'P03', 'P04', 'P05';'P01', 'P02', 'P03', 'P04', 'P05';'TD02', 'TD03', 'TD04','',''};
    
 
     subj_charac = importdata('C:\Users\Balu\Nextcloud\Documents\MA\Code\Kira_MSc_data\participants_characteristics.mat');
@@ -71,15 +69,12 @@ sessions = {'session1'; 'session2'; 'session3'};
 
     
 
-%     normalize results to bodyweight
+    % normalize results to bodyweight
     Results_BW = struct;
     for i=1:size(sessions,1)
         for j=1:size(legs,1)
             JRL_fields = fields(Results.JRL.(sessions{i}).(legs{j}));
             for k=1:size(JRL_fields,1)
-%                 if contains(JRL_fields{k},{'calcn', 'F', 'M','time','durationInSeconds'})
-%                     continue
-%                 end
                 if contains(JRL_fields{k},'_loc')
                     Results_BW.JRL.(sessions{i}).(legs{j}).(JRL_fields{k}) = Results.JRL.(sessions{i}).(legs{j}).(JRL_fields{k});
                 else
@@ -124,23 +119,16 @@ sessions = {'session1'; 'session2'; 'session3'};
         end
     end
 
-    % scatter plots peaks and AVA/NSA/TT/leg torsion
-   
+    % scatter plots peaks and AVA/NSA/TT
     if scatter_peaks_angles
-        bone_geom = struct;
-        bone_geom.leg_torsion = 0;
-        for i = 1:size(angles,1)
-            bone_geom.(angles{i}) = [];
-            for k =1: size(sessions,1)
-                bone_geom_1session = [subj_charac.(sessions{k}).(legs{1}).(angles{i}), subj_charac.(sessions{k}).(legs{2}).(angles{i})];
-                bone_geom.(angles{i}) = [bone_geom.(angles{i}), bone_geom_1session];
-            end
-            if contains(angles{i},{'TT', 'AVA'})
-                bone_geom.leg_torsion = bone_geom.leg_torsion + bone_geom.(angles{i});
-            end
+    bone_geom = struct;
+    for i = 1:size(angles,1)
+        bone_geom.(angles{i}) = [];
+        for k =1: size(sessions,1)
+            bone_geom_1session = [subj_charac.(sessions{k}).(legs{1}).(angles{i}), subj_charac.(sessions{k}).(legs{2}).(angles{i})];
+            bone_geom.(angles{i}) = [bone_geom.(angles{i}), bone_geom_1session];
         end
-
-    angles = [angles; 'leg_torsion'];
+    end
 
     nb_plots = size(angles,1)*size(joints,1);
     [ax, pos,FirstCol,LastRow,LastCol] = tight_subplot(nb_plots,0,[],[0.1 0.05],[0.1 0.05]);
@@ -148,36 +136,34 @@ sessions = {'session1'; 'session2'; 'session3'};
     for j=1:size(joints,1)
         for k=1:size(angles,1)
             axes(ax(count)); hold on; grid on;
-
-%                             plot(Results_BW.JRL.(sessions{iDOF}).(legs{j}).(joints{k})); hold on;
-                            scatter(bone_geom.(angles{k}) (1:10), [Results_BW.JRL.session1.(legs{1}).(['peak_' joints{j} '_val'])(1,:), Results_BW.JRL.session1.(legs{2}).(['peak_' joints{j} '_val'])(1,:)],36,clrs(1,:),'filled')
-                            scatter(bone_geom.(angles{k}) (11:20), [Results_BW.JRL.session2.(legs{1}).(['peak_' joints{j} '_val'])(1,:), Results_BW.JRL.session2.(legs{2}).(['peak_' joints{j} '_val'])(1,:)],36,clrs(256/2,:),'filled')
-                            scatter(bone_geom.(angles{k}) (21:end), [Results_BW.JRL.session3.(legs{1}).(['peak_' joints{j} '_val'])(1,:), Results_BW.JRL.session3.(legs{2}).(['peak_' joints{j} '_val'])(1,:)],36,clrs(end,:),'filled')
+                            plot(Results_BW.JRL.(sessions{iDOF}).(legs{j}).(joints{k})); hold on;
+                            scatter(bone_geom.(angles{k}) (1:10), [Results_BW.JRL.session1.(legs{1}).(['peak_' joints{j} '_val'])(1,:), Results_BW.JRL.session1.(legs{2}).(['peak_' joints{j} '_val'])(1,:)],'r')
+                            scatter(bone_geom.(angles{k}) (11:20), [Results_BW.JRL.session2.(legs{1}).(['peak_' joints{j} '_val'])(1,:), Results_BW.JRL.session2.(legs{2}).(['peak_' joints{j} '_val'])(1,:)],'b')
+                            scatter(bone_geom.(angles{k}) (21:end), [Results_BW.JRL.session3.(legs{1}).(['peak_' joints{j} '_val'])(1,:), Results_BW.JRL.session3.(legs{2}).(['peak_' joints{j} '_val'])(1,:)],'k')
                             
                             if two_peaks
-                                scatter(bone_geom.(angles{k}) (1:10), [Results_BW.JRL.session1.(legs{1}).(['peak_' joints{j} '_val'])(2,:), Results_BW.JRL.session1.(legs{2}).(['peak_' joints{j} '_val'])(2,:)],36,clrs(1,:),'filled')
-                                scatter(bone_geom.(angles{k}) (11:20), [Results_BW.JRL.session2.(legs{1}).(['peak_' joints{j} '_val'])(2,:), Results_BW.JRL.session2.(legs{2}).(['peak_' joints{j} '_val'])(2,:)],36,clrs(256/2,:),'filled')
-                                scatter(bone_geom.(angles{k}) (21:end), [Results_BW.JRL.session3.(legs{1}).(['peak_' joints{j} '_val'])(2,:), Results_BW.JRL.session3.(legs{2}).(['peak_' joints{j} '_val'])(2,:)],36,clrs(end,:),'filled')
+                            scatter(bone_geom.(angles{k}) (1:10), [Results_BW.JRL.session1.(legs{1}).(['peak_' joints{j} '_val'])(2,:), Results_BW.JRL.session1.(legs{2}).(['peak_' joints{j} '_val'])(2,:)],'r')
+                            scatter(bone_geom.(angles{k}) (11:20), [Results_BW.JRL.session2.(legs{1}).(['peak_' joints{j} '_val'])(2,:), Results_BW.JRL.session2.(legs{2}).(['peak_' joints{j} '_val'])(2,:)],'b')
+                            scatter(bone_geom.(angles{k}) (21:end), [Results_BW.JRL.session3.(legs{1}).(['peak_' joints{j} '_val'])(2,:), Results_BW.JRL.session3.(legs{2}).(['peak_' joints{j} '_val'])(2,:)],'k')
                             end
 
             %                 title([sessions{iDOF} ' ' legs{j} ' ' joints{k}])
             if two_peaks
-                legend('pre', '', 'post','', 'TD', '') % two peaks
+            legend('pre', '', 'post','', 'TD', '') % two peaks
             else
-                legend('pre', 'post', 'TD') % one peak
+            legend('pre', 'post', 'TD') % one peak
             end
 
             if any(count == FirstCol)
                 ylabel(['Peak ' joints{j} ' [N/BW]'])
             end
             if any(count == LastRow)
-                xlabel([angles{k} ' [°]'], 'Interpreter', 'None')
+                xlabel([angles{k} ' [°]'])
             end
             count = count +1;
         end
     end
-    tight_subplot_ticks (ax,LastRow,FirstCol)
-%     angles{end} = [];
+    tight_subplot_ticks (ax,LastRow,1)
     end
 
     % correlation plots
@@ -200,7 +186,7 @@ sessions = {'session1'; 'session2'; 'session3'};
                scatter(bone_geom.(angles{k}) (21:end), [Results_BW.JRL.session3.(legs{1}).(['peak_' joints{j} '_val'])(2,:), Results_BW.JRL.session3.(legs{2}).(['peak_' joints{j} '_val'])(2,:)],'k')
             y = [Results_BW.JRL.session1.(legs{1}).(['peak_' joints{j} '_val'])(1,:), Results_BW.JRL.session1.(legs{2}).(['peak_' joints{j} '_val'])(1,:), Results_BW.JRL.session2.(legs{1}).(['peak_' joints{j} '_val'])(1,:), Results_BW.JRL.session2.(legs{2}).(['peak_' joints{j} '_val'])(1,:), Results_BW.JRL.session3.(legs{1}).(['peak_' joints{j} '_val'])(1,:), Results_BW.JRL.session3.(legs{2}).(['peak_' joints{j} '_val'])(1,:)];
 
-            [rsquared,pvalue, p1,rlo,rup] = plotCorr(bone_geom.(angles{k})',y',3,0.05)
+            plotCorr(bone_geom.(angles{k})',y',1,0.05)
 
             %                 title([sessions{iDOF} ' ' legs{j} ' ' joints{k}])
             % legend('pre', '', 'post','', 'TD', '') % two peaks
@@ -214,53 +200,39 @@ sessions = {'session1'; 'session2'; 'session3'};
             count = count +1;
         end
     end
-    tight_subplot_ticks (ax,LastRow,FirstCol)
+    tight_subplot_ticks (ax,LastRow,1)
     end
 
     %     x = Results.JRL.session1.left.peak_HCF';
     %     y = Results.JRL.session1.right.peak_HCF';
     %     [rsquared,pvalue, p1,rlo,rup] = plotCorr (x,y,1,0.05);
 
-    if plot_SPM
-        %     plot kinematics
 
-        plotKinematics(Results)
-
-        % plot moments
-        plotDynamics(Results)
-    end
+    % plot kinematics
+    plotKinematics(Results, 'Absolute')
 
 % multiple regression analysis
 if multiple_regress
     % b: coefficient estimates, bint: 95% confidence intervals, r: residuals, rint: intervals to diagonose outliers, stats: R², F, p, error variance
-    if lin
-    X(:,1) = ones(28,1);
-    end
+%     X(:,1) = ones(28,1);
     for i = 1:size(angles,1)
         bone_angles = [];
         for k =1: size(sessions,1)
             bone_angles_1session = [subj_charac.(sessions{k}).(legs{1}).(angles{i})'; subj_charac.(sessions{k}).(legs{2}).(angles{i})'];
             bone_angles = [bone_angles; bone_angles_1session];
         end
-        if lin
-            X(:,i+1) = bone_angles;
-        else
-            X(:,i) = bone_angles;
-        end
+        X(:,i) = bone_angles;
     end
 
     for j =1:size(joints,1)
         y{j} = [Results_BW.JRL.session1.(legs{1}).(['peak_' joints{j} '_val'])(1,:), Results_BW.JRL.session1.(legs{2}).(['peak_' joints{j} '_val'])(1,:), Results_BW.JRL.session2.(legs{1}).(['peak_' joints{j} '_val'])(1,:), Results_BW.JRL.session2.(legs{2}).(['peak_' joints{j} '_val'])(1,:), Results_BW.JRL.session3.(legs{1}).(['peak_' joints{j} '_val'])(1,:), Results_BW.JRL.session3.(legs{2}).(['peak_' joints{j} '_val'])(1,:)]';
-        if lin
-            [b{j},bint{j},r{j},rint{j},stats{j}] = regress(y{j},X); % stats =  R2 statistic, F-statistic and its p-value, estimate of the error variance
-        end
-%         modelfun = @(b,x)b(1) + b(2)*x(:,1).^b(3) + b(4)*x(:,2).^b(5)+b(6)*x(:,3).^b(7);
-%         beta0 = [-50 20 -1 150 -1 4 37];
-%         mdl{j} = fitnlm(X,y{j},modelfun,beta0);
-%         clear modelfun beta0
+        modelfun = @(b,x)b(1) + b(2)*x(:,1).^b(3) + b(4)*x(:,2).^b(5)+b(6)*x(:,3).^b(7);
+        beta0 = [-50 20 -1 150 -1 4 37];
+        mdl{j} = fitnlm(X,y{j},modelfun,beta0);
+        clear modelfun beta0
     end
 
-% % plot data and regression model
+% plot data and regression model
 % for i = size(y,2)
 % scatter3(X(:,1),X(:,2),X(:,3),y{1,i},'filled')
 % hold on
@@ -270,9 +242,9 @@ if multiple_regress
 % [X1FIT,X2FIT] = meshgrid(x1fit,x2fit);
 % YFIT = b{1,i}(1) + b{1,i}(2)*X1FIT + b{1,i}(3)*X2FIT + b{1,i}(4)*X1FIT.*X2FIT;
 % mesh(X1FIT,X2FIT,YFIT)
-% xlabel('NSA')
-% ylabel('AVA')
-% zlabel('TT')
+% xlabel('Weight')
+% ylabel('Horsepower')
+% zlabel('MPG')
 % view(50,10)
 % hold off
 % clear X1FIT X2FIT YFIT
@@ -503,12 +475,12 @@ for i = 1:3
 
         ind = find(val2>val1);
         for k = 1:size(ind,2)
-            temp = val1(k);
-            val1(k) = val2(k);
-            val2(k) = temp;
-            temp = loc1(k);
-            loc1(k) = loc2(k);
-            loc2(k) = temp;
+            temp = val1(ind(k));
+            val1(ind(k)) = val2(ind(k));
+            val2(ind(k)) = temp;
+            temp = loc1(ind(k));
+            loc1(ind(k)) = loc2(ind(k));
+            loc2(ind(k)) = temp;
         end
 
         Results.JRL.(session).(leg).peak_HCF_val(1,:) = val1;
@@ -537,12 +509,12 @@ for i = 1:3
 
         ind = find(val2>val1);
         for k = 1:size(ind,2)
-            temp = val1(k);
-            val1(k) = val2(k);
-            val2(k) = temp;
-            temp = loc1(k);
-            loc1(k) = loc2(k);
-            loc2(k) = temp;
+            temp = val1(ind(k));
+            val1(ind(k)) = val2(ind(k));
+            val2(ind(k)) = temp;
+            temp = loc1(ind(k));
+            loc1(ind(k)) = loc2(ind(k));
+            loc2(ind(k)) = temp;
         end
 
         Results.JRL.(session).(leg).peak_KCF_val(1,:) = val1;
@@ -561,7 +533,7 @@ for i = 1:3
         Muscles = fields(Results.SO.(session).(leg));
         for m = 1:length(Muscles)
             muscle = Muscles{m};
-            if contains(muscle, {'time', 'durationInSeconds', 'reserve', 'ercspn', 'extobl', 'intobl','calcn'})
+            if contains(muscle, {'time', 'durationInSeconds', 'reserve', 'ercspn', 'extobl', 'Nintobl'})
                 [Results.SO.(session).(leg).(['peak_' muscle '_val']), Results.SO.(session).(leg).(['peak_' muscle '_loc'])] = calc_max(Results.SO.(session).(leg).(muscle),1);
             else
                 [Results.SO.(session).(leg).(['peak_' muscle '_val']),Results.SO.(session).(leg).(['peak_' muscle '_loc'])] = calc_max(Results.SO.(session).(leg).(muscle),0);
@@ -721,7 +693,196 @@ for col = 1: size (Data,2)
 end
 
 
-% --------------------------------------------------------------------------------------------- %
+
+% add overall title for the figure
+suptitle(['muscle forces ' Type])
+
+% add legend
+lg = legend({'pre' 'sd' 'post' '' 'td' ''});
+lg.FontSize = 12;
+lg.Position = [0.8 0.12 0.05 0.1];
+
+% make figure nice (backgorund color, font size and type, etc...)
+makeMyFigureNice
+
+% save figure
+saveas(gcf, [savedir fp 'muscle_forces' leg '.jpeg'])
+
+
+% --------------------------------------------------------------------------------------------------------------- %
+function plotContactForces(Results) % plot all muscle forces and run t-test SPM to compare (pre,post, & TD)
+
+legs = {'left','right'};
+line_colors = getColor('viridis',3);
+
+% JRF names containing fx,fy,fz,fresultant
+JRL_names = fields(Results.JRL.session1.left);
+JRL_names = [JRL_names(endsWith(JRL_names,{'_fx','_fy','fz','_fresultant'}))]; 
+
+% replace "_l" and "_r_" with "_leg_" to plot just the variable for a
+% single leg
+JRL_names = strrep(JRL_names,'_r_','_leg_');
+JRL_names = strrep(JRL_names,'_l_','_leg_');
+JRL_names = unique(JRL_names);
+
+% create figure with subplots
+n_subplots = length(JRL_names);
+[ha, ~,FirstCol,LastRow,~] = tight_subplot(n_subplots,0,[0.008 0.01],[0.05 0.02],[0.08 0.01],0.99);
+
+% loop through all muscles
+for iJRL = 1:length(JRL_names)
+    indData = {[] [] []};
+    MeanForcesAllSessions = [];
+    SDForcesAllSessions = [];
+    % assign muscle forces for each session to one
+    for iSess = 1:3
+        session = ['session' num2str(iSess)];
+     
+        for iLeg = 1:2
+            leg = legs{iLeg};
+
+            % select either absolute or normalised
+            contact_forces = Results.JRL.(session).(leg);
+            current_JRL_variable =  strrep(JRL_names{iJRL},'_leg_',['_' leg(1) '_']);
+
+            % get all muscle segments for each muscle name
+            single_varibale_JRL = contact_forces.(current_JRL_variable);
+
+            % if a column has all zeros make it all NaN
+            single_varibale_JRL = ZeroToNaN(single_varibale_JRL);
+
+            % get mass per session (do not move outside the loop to avoid
+            % deleting first participant more than once)
+            mass_current_session = Results.Mass.(session)(~isnan(Results.Mass.(session)));
+
+            % participant not good data
+            if iSess == 3 && length(mass_current_session) > 3
+                single_varibale_JRL(:,7)=NaN;
+                mass_current_session(1) = [];
+                warning on
+                warning ('deleting data participant in column 7 for session 3')
+            end
+
+            % remove columns with just NaNs
+            single_varibale_JRL = removeNaNrows(single_varibale_JRL,2);
+
+            % flip the contact forces for the left leg
+            if contains(leg(1),'l') && contains(current_JRL_variable(end-1:end),'fz')
+                single_varibale_JRL = -single_varibale_JRL;
+            end
+            
+            % normalise to BW
+            single_varibale_JRL_BW_normalised = single_varibale_JRL./(mass_current_session*9.81);
+
+            % find dimensions of the data
+            [nRows,nCols] = size(single_varibale_JRL_BW_normalised);
+            idxCols = [size(indData{iSess},2)+1 : size(indData{iSess},2)+nCols];
+
+            % add individual participant data to a cell
+            indData{iSess}(:,idxCols) = single_varibale_JRL_BW_normalised;
+
+        end
+
+        % calculate mean and SD for each group
+        MeanForcesAllSessions(:,iSess) = nanmean(indData{iSess},2);
+        SDForcesAllSessions(:,iSess) = nanstd(indData{iSess},0,2);
+    end
+
+    parts_JRL_variable = split(current_JRL_variable,'_');
+    current_JRL_variable_title = [parts_JRL_variable{1} '_' parts_JRL_variable{end}];
+
+    % run and save SPM plots
+    group_types = [1,1,2];
+    [SPM] = ttest_spm(indData,group_types);
+    suptitle([current_JRL_variable_title])
+
+    savedir = [get_main_dir() fp 'SPM_results' fp 'JRL'];
+    if ~isfolder(savedir); mkdir(savedir); end
+    saveas(gcf, [savedir fp current_JRL_variable_title '.jpeg'])
+    close(gcf)
+
+    % plot force-time curves and add SPM lines on the plot
+    axes(ha(iJRL)); hold on
+    p = plotShadedSD(MeanForcesAllSessions,SDForcesAllSessions,line_colors);
+
+    % change ylim and yticks
+%     ylim([0 6])
+    
+    add_spm_to_plot(SPM)
+
+    % add ylable to first col
+    if any(iJRL == FirstCol)
+        yl = ylabel('Joint contact forces (BW)');
+        yl.Rotation = 0;
+        yl.HorizontalAlignment ="right";
+    end
+
+    % title
+    t = title(current_JRL_variable_title, 'Interpreter','none');
+    t.VerticalAlignment = 'top';
+end
+
+% add ticks to the plots
+tight_subplot_ticks (ha,LastRow,0)
+
+% add legend
+lg = legend({'pre' 'sd' 'post' '' 'td' ''});
+lg.FontSize = 12;
+lg.Position = [0.8 0.12 0.05 0.1];
+
+% make figure nice (backgorund color, font size and type, etc...)
+makeMyFigureNice
+
+% save figure
+saveas(gcf, [savedir fp 'JointReactionLoads.jpeg'])
+
+
+
+% --------------------------------------------------------------------------------------------------------------- %
+function p = plotShadedSD(YData,SD,COLOR,Xvalues)
+% plot each column on the Mean matrix with each column on the SD matrix
+
+if size(YData,2)~=size(SD,2)
+    error('Number of columans in Mean and SD inputs must agree')
+end
+
+% [ cMat, cStruct, cNames] = getColorSet(30); % color blind friendly
+if nargin<3 || isempty(COLOR)
+    cMat = getColor(0,size(YData,2)); % color scheme 2 (Bas)
+else
+    cMat = COLOR;
+end
+%line styles
+style = {'-','--',':','-.'};
+for k = 1:ceil(size(YData,2)/4)
+    style = [style style];
+end
+
+for ii = 1:size(YData,2)
+    hold on
+    y1=YData(:,ii)';                             % create main curve
+    if nargin <4
+        x=1:length(y1);                             % initialize x row vector
+    else
+        x = Xvalues';
+    end
+
+    p(ii) = plot(x,y1,'LineWidth',1);
+    set(p(ii),'Color',cMat(ii,:),'LineStyle',style{ii})
+    color = p(ii).Color;
+
+    Top= y1+SD(:,ii)';                          % create top of shaed area
+    Bottom = y1-SD(:,ii)';                      % create bottom of shaded
+    X=[x,fliplr(x)];                            % create continuous x value array for plotting
+    Y=[Bottom fliplr(Top)];                     % create y values for out and then back
+    f1 = fill(X,Y,color);
+    alpha 0.3
+    set(f1,'FaceColor', color,'EdgeColor','none')
+
+end
+
+% --------------------------------------------------------------------------------------------------------------- %
+
 function [ha, pos,FirstCol,LastRow,LastCol] = tight_subplot(Nh, Nw, gap, marg_h, marg_w,Size)
 % tight_subplot creates "subplot" axes with adjustable gaps and margins
 %
@@ -908,8 +1069,11 @@ end
 
 
 % --------------------------------------------------------------------------------------------------------------- %
-function plotKinematics(Results)
-yPosition = 40;
+function plotKinematics(Results,Type)
+if nargin < 2
+    Type ='Normalised';
+end
+
 legs = {'left','right'};
 for iLeg = 1:2
     leg = legs{iLeg};
@@ -920,7 +1084,7 @@ for iLeg = 1:2
     IK_names = IK_names(endsWith(IK_names,['_' leg(1)]));
     % remove fileds that contain the term "peaks"
     IK_names = IK_names(~contains(IK_names,{'subtalar','mtp'}));                                                   
-    line_colors = getColor('parula',3);
+    line_colors = getColor('viridis',3);
 
     % remove '_l' or '_r' from the muscle names
 %     IK_names_short = {};
@@ -940,7 +1104,7 @@ for iLeg = 1:2
     for iIK = 1:length(IK_names)
         indData = {};
         MeanForcesAllSessions = [];
-        SDAnglesAllSessions = [];
+        SDForcesAllSessions = [];
 
         % assign kinematics for each session to one 
         for iSess = 1:3
@@ -951,7 +1115,7 @@ for iLeg = 1:2
 %                 case 'Normalised'
 %                     muscle_forces = Results.SO_normalised.(session).(leg);
 %                 case 'Absolute'
-                    IK_values = Results.IK.(session).(leg);
+%                     IK_values = Results.SO.(session).(leg);
 %             end
 
             
@@ -962,22 +1126,22 @@ for iLeg = 1:2
             single_IK = IK_values.(segments{1});
 
             % if a column has all zeros make it all NaN
-            single_IK = ZeroToNaN(single_IK);
+            single_IK = ZeroToNaN(single_IK,2);
             
             % average the IK for each segment (for each column /trial)
             for iSeg = 2:length(segments)
                 single_IK = (single_IK + IK_values.(segments{iSeg}))./2;                       
             end
-%             
-%             if iSess == 3
-%                 single_IK(:,5)=NaN;
-%             end
+            
+            if iSess == 3
+                single_IK(:,7)=NaN;
+            end
 
 
             % plot mean and SD
             indData{iSess} = removeNaNrows(single_IK);
-            MeanAnglesAllSessions(:,iSess) = nanmean(single_IK,2);
-            SDAnglesAllSessions(:,iSess) = nanstd(single_IK,0,2);
+            MeanForcesAllSessions(:,iSess) = nanmean(single_IK,2);
+            SDForcesAllSessions(:,iSess) = nanstd(single_IK,0,2);
 
         end
 
@@ -987,28 +1151,28 @@ for iLeg = 1:2
         
         savedir = [get_main_dir() fp 'SPM_results'];
         if ~isfolder(savedir); mkdir(savedir); end
-        saveas(gcf, [savedir fp current_DOF ' ' leg '.jpeg'])
+        saveas(gcf, [savedir fp current_muscle ' ' leg '.jpeg'])
         close(gcf)
         
         % plot force-time curves and add SPM lines on the plot
         axes(ha(iIK)); hold on
-        p = plotShadedSD(MeanAnglesAllSessions,SDAnglesAllSessions,line_colors);
+        p = plotShadedSD(MeanForcesAllSessions,SDForcesAllSessions,line_colors);
         
-        add_spm_to_plot(SPM,[],yPosition)
+        add_spm_to_plot(SPM)
        
         % change ylim and yticks
-        ylim([-80 55])
+        ylim([0 140])
         
 
         % add ylable to first col
         if any(iIK == FirstCol)
-            yl = ylabel('Angle [°]');
+            yl = ylabel('% Max isom force');
             yl.Rotation = 0;
             yl.HorizontalAlignment ="right";
         end
 
         % title
-        t = title(current_DOF, 'Interpreter','none');
+        t = title(current_muscle, 'Interpreter','none');
         t.VerticalAlignment = 'top';
     end
     
@@ -1016,7 +1180,7 @@ for iLeg = 1:2
     tight_subplot_ticks (ha,LastRow,FirstCol)                                                                       
     
     % add overall title for the figure 
-    suptitle(['kinematics ' leg])
+    suptitle(['muscle forces ' leg])
 
     % add legend
     lg = legend({'pre' 'sd' 'post' '' 'td' ''});
@@ -1030,133 +1194,6 @@ for iLeg = 1:2
     saveas(gcf, [savedir fp 'IK' leg '.jpeg'])
 
 end
-
-% --------------------------------------------------------------------------------------------------------------- %
-function plotDynamics(Results)
-
-legs = {'left','right'};
-yPosition = 60;
-for iLeg = 1:2
-    leg = legs{iLeg};
-    ID_values = Results.ID.session1.left;
-    ID_names = fields(ID_values);
-    
-    % only leg side muscles
-    ID_names = ID_names(contains(ID_names,['_' leg(1) '_']));
-    % remove fileds that contain the term "peaks"
-    ID_names = ID_names(~contains(ID_names,{'subtalar','mtp'}));                                                   
-    line_colors = getColor('parula',3);
-
-    % remove '_l' or '_r' from the muscle names
-%     ID_names_short = {};
-%     for iID = 1:length(ID_names)
-%         ID_names_short{end+1,1} = ID_names{iID}(1:end-2);
-%         if any(contains(ID_names_short{end}(end),{'1','2','3'}))                                                % remove numebers 1,2,3
-%             ID_names_short{end} = ID_names_short{end}(1:end-1);
-%         end
-%     end
-%     ID_names_short = unique(ID_names_short);
-
-    % create figure with subplots
-    n_subplots = length(ID_names);
-    [ha, ~,FirstCol,LastRow,~] = tight_subplot(n_subplots,0,[0.008 0.01],[0.05 0.02],[0.08 0.01],0.99);
-  
-    % loop through all joints
-    for iID = 1:length(ID_names)
-        indData = {};
-        MeanForcesAllSessions = [];
-        SDAnglesAllSessions = [];
-
-        % assign kinematics for each session to one 
-        for iSess = 1:3
-            session = ['session' num2str(iSess)];
-
-            % select either absolute or normalised
-%             switch Type
-%                 case 'Normalised'
-%                     muscle_forces = Results.SO_normalised.(session).(leg);
-%                 case 'Absolute'
-                    ID_values = Results.ID.(session).(leg);
-%             end
-
-            
-            current_DOF = ID_names{iID};
-
-            % get all muscle segments for each muscle name
-            segments = ID_names(contains(ID_names,current_DOF));                                         
-            single_ID = ID_values.(segments{1});
-
-            % if a column has all zeros make it all NaN
-            single_ID = ZeroToNaN(single_ID);
-            
-            % average the ID for each segment (for each column /trial)
-            for iSeg = 2:length(segments)
-                single_ID = (single_ID + ID_values.(segments{iSeg}))./2;                       
-            end
-            
-%             if iSess == 3
-%                 single_ID(:,5)=NaN;
-%             end
-
-
-            % plot mean and SD
-            indData{iSess} = removeNaNrows(single_ID);
-            MeanAnglesAllSessions(:,iSess) = nanmean(single_ID,2);
-            SDAnglesAllSessions(:,iSess) = nanstd(single_ID,0,2);
-
-        end
-
-        % run and save SPM plots
-        [SPM] = ttest2(indData);
-        suptitle([current_DOF ' ' leg])
-        
-        savedir = [get_main_dir() fp 'SPM_results'];
-        if ~isfolder(savedir); mkdir(savedir); end
-        saveas(gcf, [savedir fp current_DOF ' ' leg '.jpeg'])
-        close(gcf)
-        
-        % plot force-time curves and add SPM lines on the plot
-        axes(ha(iID)); hold on
-        p = plotShadedSD(MeanAnglesAllSessions,SDAnglesAllSessions,line_colors);
-        
-        add_spm_to_plot(SPM,[],yPosition)
-       
-        % change ylim and yticks
-        ylim([-80 80])
-        
-
-        % add ylable to first col
-        if any(iID == FirstCol)
-            yl = ylabel('Angle [°]');
-            yl.Rotation = 0;
-            yl.HorizontalAlignment ="right";
-        end
-
-        % title
-        t = title(current_DOF, 'Interpreter','none');
-        t.VerticalAlignment = 'top';
-    end
-    
-    % add ticks to the plots
-    tight_subplot_ticks (ha,LastRow,FirstCol)                                                                       
-    
-    % add overall title for the figure 
-    suptitle(['moments ' leg])
-
-    % add legend
-    lg = legend({'pre' 'sd' 'post' '' 'td' ''});
-    lg.FontSize = 12;
-    lg.Position = [0.8 0.12 0.05 0.1];
-
-    % make figure nice (backgorund color, font size and type, etc...)
-    makeMyFigureNice
-    
-    % save figure
-    saveas(gcf, [savedir fp 'ID' leg '.jpeg'])
-
-end
-
-
 
 % ---------------------------------------------------------------------- %
 function [cMat,LineStyles,Marker] = getColor (pallet_name,nColors)
@@ -1287,146 +1324,3 @@ for iComb = combinations'
     SPM.(['comp_' comparison_name]).p_idx = p_value_idx;
 end
 tight_subplot_ticks(ha,0,0)
-
-
-
-% --------------------------------------------------------------------------------------------------------------- %
-% function add_spm_to_plot(SPM,colors)
-% 
-% comparisons = fields(SPM);
-% nComp = length(comparisons);
-% if nargin < 2
-%     colors = getColor('viridis',nComp);
-% elseif length(colors) ~= length(comparisons) 
-%     warnign on 
-%     warning('number of olors and number of comparions do not match. Auto colors ')
-%     colors = getColor('viridis',nComp);
-% end
-% 
-% for i = 1:nComp
-% 
-%     % get the x positions of significant differences for each comparisons
-%     % and create a similar vector y at height 110
-%     x = SPM.(comparisons{i}).sig_idx;
-%     x = [1:10, 20:34, 50:68];
-%     
-%     % Find the indices where consecutive values change
-%     diff_indices = find(diff(x) ~= 1);
-% 
-%     % Split the vector into sections
-%     sections = mat2cell(x, 1, diff([0, diff_indices, numel(x)]));
-% 
-%     % plot each section the sections
-%     for i = 1:numel(sections)
-%         x = insertDecimalPoints(sections{i},6);
-%         y = repmat(110, size(x));
-% 
-%         % Define the position and size of the rectangle
-%         x_rect = x(1);
-%         y_rect = min(ylim) - range(ylim)*0.1;
-%         width = length(x);
-%         height = 0.03;
-% 
-%         % Draw the rectangle
-%         rectangle('Position', [x_rect, y_rect, width, height], 'FaceColor', colors(i,:), 'EdgeColor','none')
-%     end
-% 
-% 
-% 
-%     plot(x, y, 'o', 'MarkerFaceColor', 'b');  % Plot the points with blue markers
-% 
-% end
-
-% -------------------------------------------------------------------- %
-function A = ZeroToNaN(A)
-
-% Loop through each column
-for col = 1:size(A, 2)
-    if all(A(:, col) == 0)
-        
-        % Replace column with NaN values
-        A(:, col) = NaN;  
-    end
-end
-
-% --------------------------------------------------------------------- %
-function x_new = insertDecimalPoints(x,N_decimals)
-x_new = [];
-if isempty(x)
-    return
-end
-
-for i = 1:length(x)-1
-    x_new = [x_new, x(i), linspace(x(i)+0.00001, x(i+1)-0.00001, N_decimals)];
-end
-x_new = [x_new, x(end)];
-
-
-% --------------------------------------------------------------------------------------------------------------- %
-function makeMyFigureNice
-
-set(gcf,'Color',[1 1 1]);
-grid off
-fig=gcf;
-N =  length(fig.Children);
-for ii = 1:N
-    set(fig.Children(ii),'box', 'off')
-    if contains(class(fig.Children(ii)),'Axes')
-        fig.Children(ii).FontName = 'Arial';
-        fig.Children(ii).Title.FontWeight = 'Normal';
-        fig.Children(ii).FontSize = 7;                                                                              % font size
-
-        for ax = 1:length(fig.Children(ii).Children)
-            if contains(class(fig.Children(ii).Children(ax)),'matlab.graphics.chart.primitive.Line')
-                fig.Children(ii).Children(ax).LineWidth = 2;
-            end
-        end
-    end
-end
-
-
-% -------------------------------------------------------------------------------------- %
-function add_spm_to_plot(SPM,colors,yPosition)
-
-comparisons = fields(SPM);
-nComp = length(comparisons);
-
-% if no colors are selected 
-if nargin < 2
-    colors = getColor('parula',nComp);
-elseif length(colors) ~= length(comparisons) 
-    warning on 
-    warning('number of colors and number of comparions do not match. Auto colors ')
-    colors = getColor('parula',nComp);
-end
-
-if nargin < 3
-    yPosition = 110;
-end
-
-for i = 1:nComp
-
-    % get the x positions of significant differences for each comparisons
-    % and create a similar vector y at height 110
-    x = SPM.(comparisons{i}).sig_idx;
-%     x = [1:10, 20:34, 50:68];
-    
-    % Find the indices where consecutive values change & split the vector into sections
-    diff_indices = find(diff(x) ~= 1);
-    sections = mat2cell(x, 1, diff([0, diff_indices, numel(x)]));
-
-    % plot each section the sections
-    for i = 1:numel(sections)
-        x = sections{i};
-        y = repmat(110, size(x));
-
-        % Define the position and size of the rectangle
-        x_rect = x(1);
-        y_rect = yPosition + yPosition*0.1*(i-1);
-        width = length(x);
-        height = 2;
-
-        % Draw the rectangle
-        rectangle('Position', [x_rect, y_rect, width, height], 'FaceColor', colors(i,:), 'EdgeColor','none')
-    end
-end
