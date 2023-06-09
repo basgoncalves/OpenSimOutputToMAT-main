@@ -700,9 +700,7 @@ for col = 1: size (Data,2)
 end
 
 
-<<<<<<< Updated upstream
-% --------------------------------------------------------------------------------------------- %
-=======
+
 % add overall title for the figure
 suptitle(['muscle forces ' Type])
 
@@ -891,7 +889,7 @@ for ii = 1:size(YData,2)
 end
 
 % --------------------------------------------------------------------------------------------------------------- %
->>>>>>> Stashed changes
+
 function [ha, pos,FirstCol,LastRow,LastCol] = tight_subplot(Nh, Nw, gap, marg_h, marg_w,Size)
 % tight_subplot creates "subplot" axes with adjustable gaps and margins
 %
