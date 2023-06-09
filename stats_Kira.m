@@ -700,7 +700,198 @@ for col = 1: size (Data,2)
 end
 
 
+<<<<<<< Updated upstream
 % --------------------------------------------------------------------------------------------- %
+=======
+% add overall title for the figure
+suptitle(['muscle forces ' Type])
+
+% add legend
+lg = legend({'pre' 'sd' 'post' '' 'td' ''});
+lg.FontSize = 12;
+lg.Position = [0.8 0.12 0.05 0.1];
+
+% make figure nice (backgorund color, font size and type, etc...)
+makeMyFigureNice
+
+% save figure
+saveas(gcf, [savedir fp 'muscle_forces' leg '.jpeg'])
+
+
+% --------------------------------------------------------------------------------------------------------------- %
+function plotContactForces(Results) % plot all muscle forces and run t-test SPM to compare (pre,post, & TD)
+
+legs = {'left','right'};
+line_colors = getColor('viridis',3);
+
+% JRF names containing fx,fy,fz,fresultant
+JRL_names = fields(Results.JRL.session1.left);
+JRL_names = [JRL_names(endsWith(JRL_names,{'_fx','_fy','fz','_fresultant'}))]; 
+
+% replace "_l" and "_r_" with "_leg_" to plot just the variable for a
+% single leg
+JRL_names = strrep(JRL_names,'_r_','_leg_');
+JRL_names = strrep(JRL_names,'_l_','_leg_');
+JRL_names = unique(JRL_names);
+
+% create figure with subplots
+n_subplots = length(JRL_names);
+[ha, ~,FirstCol,LastRow,~] = tight_subplot(n_subplots,0,[0.008 0.01],[0.05 0.02],[0.08 0.01],0.99);
+
+% loop through all muscles
+for iJRL = 1:length(JRL_names)
+    indData = {[] [] []};
+    MeanForcesAllSessions = [];
+    SDForcesAllSessions = [];
+    % assign muscle forces for each session to one
+    for iSess = 1:3
+        session = ['session' num2str(iSess)];
+     
+        for iLeg = 1:2
+            leg = legs{iLeg};
+
+            % select either absolute or normalised
+            contact_forces = Results.JRL.(session).(leg);
+            current_JRL_variable =  strrep(JRL_names{iJRL},'_leg_',['_' leg(1) '_']);
+
+            % get all muscle segments for each muscle name
+            single_varibale_JRL = contact_forces.(current_JRL_variable);
+
+            % if a column has all zeros make it all NaN
+            single_varibale_JRL = ZeroToNaN(single_varibale_JRL);
+
+            % get mass per session (do not move outside the loop to avoid
+            % deleting first participant more than once)
+            mass_current_session = Results.Mass.(session)(~isnan(Results.Mass.(session)));
+
+            % participant not good data
+            if iSess == 3 && length(mass_current_session) > 3
+                single_varibale_JRL(:,7)=NaN;
+                mass_current_session(1) = [];
+                warning on
+                warning ('deleting data participant in column 7 for session 3')
+            end
+
+            % remove columns with just NaNs
+            single_varibale_JRL = removeNaNrows(single_varibale_JRL,2);
+
+            % flip the contact forces for the left leg
+            if contains(leg(1),'l') && contains(current_JRL_variable(end-1:end),'fz')
+                single_varibale_JRL = -single_varibale_JRL;
+            end
+            
+            % normalise to BW
+            single_varibale_JRL_BW_normalised = single_varibale_JRL./(mass_current_session*9.81);
+
+            % find dimensions of the data
+            [nRows,nCols] = size(single_varibale_JRL_BW_normalised);
+            idxCols = [size(indData{iSess},2)+1 : size(indData{iSess},2)+nCols];
+
+            % add individual participant data to a cell
+            indData{iSess}(:,idxCols) = single_varibale_JRL_BW_normalised;
+
+        end
+
+        % calculate mean and SD for each group
+        MeanForcesAllSessions(:,iSess) = nanmean(indData{iSess},2);
+        SDForcesAllSessions(:,iSess) = nanstd(indData{iSess},0,2);
+    end
+
+    parts_JRL_variable = split(current_JRL_variable,'_');
+    current_JRL_variable_title = [parts_JRL_variable{1} '_' parts_JRL_variable{end}];
+
+    % run and save SPM plots
+    group_types = [1,1,2];
+    [SPM] = ttest_spm(indData,group_types);
+    suptitle([current_JRL_variable_title])
+
+    savedir = [get_main_dir() fp 'SPM_results' fp 'JRL'];
+    if ~isfolder(savedir); mkdir(savedir); end
+    saveas(gcf, [savedir fp current_JRL_variable_title '.jpeg'])
+    close(gcf)
+
+    % plot force-time curves and add SPM lines on the plot
+    axes(ha(iJRL)); hold on
+    p = plotShadedSD(MeanForcesAllSessions,SDForcesAllSessions,line_colors);
+
+    % change ylim and yticks
+%     ylim([0 6])
+    
+    add_spm_to_plot(SPM)
+
+    % add ylable to first col
+    if any(iJRL == FirstCol)
+        yl = ylabel('Joint contact forces (BW)');
+        yl.Rotation = 0;
+        yl.HorizontalAlignment ="right";
+    end
+
+    % title
+    t = title(current_JRL_variable_title, 'Interpreter','none');
+    t.VerticalAlignment = 'top';
+end
+
+% add ticks to the plots
+tight_subplot_ticks (ha,LastRow,0)
+
+% add legend
+lg = legend({'pre' 'sd' 'post' '' 'td' ''});
+lg.FontSize = 12;
+lg.Position = [0.8 0.12 0.05 0.1];
+
+% make figure nice (backgorund color, font size and type, etc...)
+makeMyFigureNice
+
+% save figure
+saveas(gcf, [savedir fp 'JointReactionLoads.jpeg'])
+
+
+
+% --------------------------------------------------------------------------------------------------------------- %
+function p = plotShadedSD(YData,SD,COLOR,Xvalues)
+% plot each column on the Mean matrix with each column on the SD matrix
+
+if size(YData,2)~=size(SD,2)
+    error('Number of columans in Mean and SD inputs must agree')
+end
+
+% [ cMat, cStruct, cNames] = getColorSet(30); % color blind friendly
+if nargin<3 || isempty(COLOR)
+    cMat = getColor(0,size(YData,2)); % color scheme 2 (Bas)
+else
+    cMat = COLOR;
+end
+%line styles
+style = {'-','--',':','-.'};
+for k = 1:ceil(size(YData,2)/4)
+    style = [style style];
+end
+
+for ii = 1:size(YData,2)
+    hold on
+    y1=YData(:,ii)';                             % create main curve
+    if nargin <4
+        x=1:length(y1);                             % initialize x row vector
+    else
+        x = Xvalues';
+    end
+
+    p(ii) = plot(x,y1,'LineWidth',1);
+    set(p(ii),'Color',cMat(ii,:),'LineStyle',style{ii})
+    color = p(ii).Color;
+
+    Top= y1+SD(:,ii)';                          % create top of shaed area
+    Bottom = y1-SD(:,ii)';                      % create bottom of shaded
+    X=[x,fliplr(x)];                            % create continuous x value array for plotting
+    Y=[Bottom fliplr(Top)];                     % create y values for out and then back
+    f1 = fill(X,Y,color);
+    alpha 0.3
+    set(f1,'FaceColor', color,'EdgeColor','none')
+
+end
+
+% --------------------------------------------------------------------------------------------------------------- %
+>>>>>>> Stashed changes
 function [ha, pos,FirstCol,LastRow,LastCol] = tight_subplot(Nh, Nw, gap, marg_h, marg_w,Size)
 % tight_subplot creates "subplot" axes with adjustable gaps and margins
 %
