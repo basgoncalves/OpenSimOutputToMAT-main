@@ -7,18 +7,11 @@ S = get_subjects;
 
 gather_data_in_struct = false;
 
-add_repos_to_path
-[Results] = get_data_struct; 
-S = get_subjects;
-
-
-gather_data_in_struct = false;
-
-run_stats = true;
-plot_JRF_curve_and_peaks = false;
-scatter_peaks_angles = false; two_peaks = false;
-plot_corr = false;
-multiple_regress = false;
+run_stats =                 true;
+plot_JRF_curve_and_peaks =  false;
+scatter_peaks_angles =      false; two_peaks = false;
+plot_corr =                 false;
+multiple_regress =          false;
 
 %% organise data in struct
 if gather_data_in_struct
@@ -56,13 +49,13 @@ if run_stats
 
     legs = {'left'; 'right'};
 sessions = {'session1'; 'session2'; 'session3'};
-    joints = {'KCF'; 'HCF'};
+    joints = {'HCF';'KCF';'ACF'};
         angles = {'NSA'; 'AVA'; 'TT'};
-    lgnd = {'P01', 'P02', 'P03', 'P04', 'P05';'P01', 'P02', 'P03', 'P04', 'P05';'TD01', 'TD04', 'TD06', 'TD07',''};
+    lgnd = {'P01', 'P02', 'P03', 'P04', 'P05';'P01', 'P02', 'P03', 'P04', 'P05';'TD02', 'TD03', 'TD04','',''};
    
 
     subj_charac = importdata('C:\Users\Balu\Nextcloud\Documents\MA\Code\Kira_MSc_data\participants_characteristics.mat');
-    add_nan = {'ercspn_r'; 'ercspn_l'; 'Nintobl_r'; 'Nintobl_l'; 'extobl_r'; 'extobl_l'};
+    add_nan = {'ercspn_r'; 'ercspn_l'; 'intobl_r'; 'intobl_l'; 'extobl_r'; 'extobl_l'};
     for k = 1:size(legs,1)
         for i = 1:size(add_nan,1)
             for c=4:-1:2
@@ -482,12 +475,12 @@ for i = 1:3
 
         ind = find(val2>val1);
         for k = 1:size(ind,2)
-            temp = val1(k);
-            val1(k) = val2(k);
-            val2(k) = temp;
-            temp = loc1(k);
-            loc1(k) = loc2(k);
-            loc2(k) = temp;
+            temp = val1(ind(k));
+            val1(ind(k)) = val2(ind(k));
+            val2(ind(k)) = temp;
+            temp = loc1(ind(k));
+            loc1(ind(k)) = loc2(ind(k));
+            loc2(ind(k)) = temp;
         end
 
         Results.JRL.(session).(leg).peak_HCF_val(1,:) = val1;
@@ -516,12 +509,12 @@ for i = 1:3
 
         ind = find(val2>val1);
         for k = 1:size(ind,2)
-            temp = val1(k);
-            val1(k) = val2(k);
-            val2(k) = temp;
-            temp = loc1(k);
-            loc1(k) = loc2(k);
-            loc2(k) = temp;
+            temp = val1(ind(k));
+            val1(ind(k)) = val2(ind(k));
+            val2(ind(k)) = temp;
+            temp = loc1(ind(k));
+            loc1(ind(k)) = loc2(ind(k));
+            loc2(ind(k)) = temp;
         end
 
         Results.JRL.(session).(leg).peak_KCF_val(1,:) = val1;
