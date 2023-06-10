@@ -9,9 +9,9 @@ gather_data_in_struct = false;
 
 run_stats =                 true;
 plot_JRF_curve_and_peaks =  false;
-scatter_peaks_angles =      true; plot_muscles = false; two_peaks = false;
+scatter_peaks_angles =      false; plot_muscles = false; two_peaks = false;
 plot_corr =                 false;
-multiple_regress =          false; lin = true;
+multiple_regress =          true; lin = true;
 plot_SPM =                  false;
 clrs = parula;
 
@@ -242,8 +242,9 @@ if run_stats
                 end
             end
             tight_subplot_ticks (ax,LastRow,FirstCol)
-            %     angles{end} = [];
+            
         end
+            angles(end) = [];
     end
 
     % correlation plots
@@ -314,18 +315,23 @@ if run_stats
                 X(:,i) = bone_angles;
             end
         end
-        X(:,end+1) = X(:,end-1)-X(:,end);
+        X(:,end+1) = X(:,end)-X(:,end-1);
 
-        for j =1:size(joints,1)
-            y{j} = [Results_BW.JRL.session1.(legs{1}).(['peak_' joints{j} '_val'])(1,:), Results_BW.JRL.session1.(legs{2}).(['peak_' joints{j} '_val'])(1,:), Results_BW.JRL.session2.(legs{1}).(['peak_' joints{j} '_val'])(1,:), Results_BW.JRL.session2.(legs{2}).(['peak_' joints{j} '_val'])(1,:), Results_BW.JRL.session3.(legs{1}).(['peak_' joints{j} '_val'])(1,:), Results_BW.JRL.session3.(legs{2}).(['peak_' joints{j} '_val'])(1,:)]';
+y_HCF = [Results_BW.JRL.session1.(legs{1}).(['peak_' joints{1} '_val'])(1,:), Results_BW.JRL.session1.(legs{2}).(['peak_' joints{1} '_val'])(1,:), Results_BW.JRL.session2.(legs{1}).(['peak_' joints{1} '_val'])(1,:), Results_BW.JRL.session2.(legs{2}).(['peak_' joints{1} '_val'])(1,:), Results_BW.JRL.session3.(legs{1}).(['peak_' joints{1} '_val'])(1,:), Results_BW.JRL.session3.(legs{2}).(['peak_' joints{1} '_val'])(1,:)]';
             if lin
-                [b{j},bint{j},r{j},rint{j},stats{j}] = regress(y{j},X); % stats =  R2 statistic, F-statistic and its p-value, estimate of the error variance
+                [b_HCF,bint_HCF,r_HCF,rint_HCF,stats_HCF] = regress(y_HCF,X); % stats =  R2 statistic, F-statistic and its p-value, estimate of the error variance
             end
-            %         modelfun = @(b,x)b(1) + b(2)*x(:,1).^b(3) + b(4)*x(:,2).^b(5)+b(6)*x(:,3).^b(7);
-            %         beta0 = [-50 20 -1 150 -1 4 37];
-            %         mdl{j} = fitnlm(X,y{j},modelfun,beta0);
-            %         clear modelfun beta0
-        end
+
+%         for j =1:size(joints,1)
+%             y{j} = [Results_BW.JRL.session1.(legs{1}).(['peak_' joints{j} '_val'])(1,:), Results_BW.JRL.session1.(legs{2}).(['peak_' joints{j} '_val'])(1,:), Results_BW.JRL.session2.(legs{1}).(['peak_' joints{j} '_val'])(1,:), Results_BW.JRL.session2.(legs{2}).(['peak_' joints{j} '_val'])(1,:), Results_BW.JRL.session3.(legs{1}).(['peak_' joints{j} '_val'])(1,:), Results_BW.JRL.session3.(legs{2}).(['peak_' joints{j} '_val'])(1,:)]';
+%             if lin
+%                 [b{j},bint{j},r{j},rint{j},stats{j}] = regress(y{j},X); % stats =  R2 statistic, F-statistic and its p-value, estimate of the error variance
+%             end
+%             %         modelfun = @(b,x)b(1) + b(2)*x(:,1).^b(3) + b(4)*x(:,2).^b(5)+b(6)*x(:,3).^b(7);
+%             %         beta0 = [-50 20 -1 150 -1 4 37];
+%             %         mdl{j} = fitnlm(X,y{j},modelfun,beta0);
+%             %         clear modelfun beta0
+%         end
 
         % % plot data and regression model
         % for i = size(y,2)
