@@ -1,10 +1,10 @@
-clear all; %close all;
+clear all; close all;
 clc;
 addpath(genpath('C:\Users\Balu\Nextcloud\Documents\MA\Code\MSKmodelling')); 
 
 %% individual data to be changed before every run
-subj = 'TD01';
-surg = '';%\pre or \post or ''
+subj = 'P02';
+surg = '\post';%\pre or \post or ''
 root_path = 'C:\Users\Balu\Nextcloud\Documents\MA\Code\Kira_MSc_data\';
 %% choose what you want to run
 scale = 0;
@@ -13,10 +13,10 @@ replace_nan = 0;
 mod_max_isom_force = 0; force_factor = 2;
 IK_max_error = 0;
 check_muscle_moment_arm = 0;
-plot_IK = 0;
+plot_IK = 1;
 plot_ID = 0;
 plot_SO = 0;
-plot_JRL = 1;
+plot_JRL = 0;
 plot_std = 0;
 plot_all_trials = 1; % plot all trials individually (1) or average with standard deviation (0)
 save_struct = 0;
@@ -93,7 +93,7 @@ markers_torso_list = {'STRN','T10','C7'};
 markers_legs_list = {'LASI', 'RASI', 'SACR', 'LT1', 'LT2', 'LT3', 'LS1', 'LS2', 'LS3', 'LHEE', 'LTOE', 'RT1', 'RT2', 'RT3', 'RS1', 'RS2', 'RS3', 'RHEE', 'RTOE'};
 % markers_list = {'T10','C7','LASI', 'RASI', 'SACR','LTHI1', 'LTHI2', 'LTHI3', 'LTIB1', 'LTIB2', 'LTIB3', 'LHEEL', 'LTOE', 'RTHI1', 'RTHI2', 'RTHI3', 'RTIB1', 'RTIB2', 'RTIB3', 'RHEEL', 'RTOE'};
 % markers_list = {'LASI','RASI','LASI', 'RASI', 'RTHI1', 'RTHI2', 'RTHI3', 'RTIB1', 'RTIB2', 'RTIB3', 'RHEEL', 'RTOE', 'RTHI1', 'RTHI2', 'RTHI3', 'RTIB1', 'RTIB2', 'RTIB3', 'RHEEL', 'RTOE'};
-subject_folder = [root_path subj surg '\output incr opt fibre length' folder_sacrum '\FINAL_PERSONALISEDTORSIONS_scaled_final' folder_ending '\'];
+subject_folder = [root_path subj surg '\output automization' folder_sacrum '\FINAL_PERSONALISEDTORSIONS_scaled_final' folder_ending '\'];
 events_folder = [root_path subj surg '\C3D\']; % path for C3D events
 
 %% generate scale template

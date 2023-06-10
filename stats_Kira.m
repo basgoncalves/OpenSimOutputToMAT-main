@@ -11,8 +11,8 @@ run_stats =                 true;
 plot_JRF_curve_and_peaks =  false;
 scatter_peaks_angles =      false; plot_muscles = false; two_peaks = false;
 plot_corr =                 false;
-multiple_regress =          true; lin = true;
-plot_SPM =                  false;
+multiple_regress =          false; lin = true;
+plot_SPM =                  true;
 clrs = parula;
 
 %% organise data in struct
@@ -284,13 +284,9 @@ if run_stats
         tight_subplot_ticks (ax,LastRow,FirstCol)
     end
 
-    %     x = Results.JRL.session1.left.peak_HCF';
-    %     y = Results.JRL.session1.right.peak_HCF';
-    %     [rsquared,pvalue, p1,rlo,rup] = plotCorr (x,y,1,0.05);
 
     if plot_SPM
         %     plot kinematics
-
         plotKinematics(Results)
 
         % plot moments
