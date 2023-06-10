@@ -4,7 +4,7 @@ add_repos_to_path
 [Results] = create_data_struct;
 S = get_subjects;
 
-gather_data_in_struct = false;
+gather_data_in_struct = true;
 run_stats = true;
 
 %% organise data in struct
@@ -1553,10 +1553,10 @@ for iID = 1:length(ID_names)
     p = plotShadedSD(MeanMomentsAllSessions,SDMomentsAllSessions,line_colors);
 
     % change ylim and yticks
-    ylim([-0.2 0.1])
+    ylim([-0.15 0.15])
     xlim([0 100])
     
-    add_spm_to_plot(SPM)
+    add_spm_to_plot(SPM,'parula',0.1)
 
     % add ylable to first col
     if any(iID == FirstCol)
@@ -1574,7 +1574,7 @@ end
 tight_subplot_ticks (ha,LastRow,0)
 
 % add legend
-lg = legend({'pre' 'sd' 'post' '' 'td' ''});
+lg = legend({'pre' 'sd' '' 'post' '' 'td'});
 lg.FontSize = 12;
 lg.Position = [0.8 0.12 0.05 0.1];
 

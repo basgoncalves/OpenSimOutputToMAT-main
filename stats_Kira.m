@@ -5,15 +5,15 @@ function stats_Kira()
 [Results] = get_data_struct;
 S = get_subjects;
 
-gather_data_in_struct = false;
+gather_data_in_struct = true;
 
 run_stats =                 true;
 plot_JRF_curve_and_peaks =  false;
-scatter_peaks_angles =      false; plot_muscles = false; two_peaks = false;
+scatter_peaks_angles =      true; plot_muscles = false; two_peaks = false;
 plot_corr =                 false;
 multiple_regress =          false; lin = true;
-plot_SPM =                  true;
-clrs = parula;
+plot_SPM =                  false;
+clrs = 'parula';
 
 %% organise data in struct
 if gather_data_in_struct
@@ -173,6 +173,8 @@ if run_stats
         muscles_r = muscles(contains(muscles,'_r_'));
         muscles_l = muscles(contains(muscles,'_l_'));
 
+dot_colors = getColor(clrs,3);
+
         if plot_muscles
             for o = size(angles,1)
                 nb_plots = size(muscles_r,1);
@@ -183,9 +185,9 @@ if run_stats
                         axes(ax(count)); hold on; grid on;
 
                         %                             plot(Results_BW.JRL.(sessions{iDOF}).(legs{j}).(joints{k})); hold on;
-                        scatter(bone_geom.(angles{k}) (1:10), [Results_BW.SO.session1.(legs{1}).(muscles_l{j})(1,:), Results_BW.SO.session1.(legs{2}).(muscles_r{j})(1,:)],36,clrs(1,:),'filled')
-                        scatter(bone_geom.(angles{k}) (11:20), [Results_BW.SO.session2.(legs{1}).(muscles_l{j})(1,:), Results_BW.SO.session2.(legs{2}).(muscles_r{j})(1,:)],36,clrs(256/2,:),'filled')
-                        scatter(bone_geom.(angles{k}) (21:end), [Results_BW.SO.session3.(legs{1}).(muscles_l{j})(1,:), Results_BW.SO.session3.(legs{2}).(muscles_r{j})(1,:)],36,clrs(end,:),'filled')
+                        scatter(bone_geom.(angles{k}) (1:10), [Results_BW.SO.session1.(legs{1}).(muscles_l{j})(1,:), Results_BW.SO.session1.(legs{2}).(muscles_r{j})(1,:)],36,dot_colors(1,:),'filled')
+                        scatter(bone_geom.(angles{k}) (11:20), [Results_BW.SO.session2.(legs{1}).(muscles_l{j})(1,:), Results_BW.SO.session2.(legs{2}).(muscles_r{j})(1,:)],36,dot_colors(2,:),'filled')
+                        scatter(bone_geom.(angles{k}) (21:end), [Results_BW.SO.session3.(legs{1}).(muscles_l{j})(1,:), Results_BW.SO.session3.(legs{2}).(muscles_r{j})(1,:)],36,dot_colors(end,:),'filled')
 
 
                         %                 title([sessions{iDOF} ' ' legs{j} ' ' joints{k}])
@@ -215,14 +217,14 @@ if run_stats
                     axes(ax(count)); hold on; grid on;
 
                     %                             plot(Results_BW.JRL.(sessions{iDOF}).(legs{j}).(joints{k})); hold on;
-                    scatter(bone_geom.(angles{k}) (1:10), [Results_BW.JRL.session1.(legs{1}).(['peak_' joints{j} '_val'])(1,:), Results_BW.JRL.session1.(legs{2}).(['peak_' joints{j} '_val'])(1,:)],36,clrs(1,:),'filled')
-                    scatter(bone_geom.(angles{k}) (11:20), [Results_BW.JRL.session2.(legs{1}).(['peak_' joints{j} '_val'])(1,:), Results_BW.JRL.session2.(legs{2}).(['peak_' joints{j} '_val'])(1,:)],36,clrs(256/2,:),'filled')
-                    scatter(bone_geom.(angles{k}) (21:end), [Results_BW.JRL.session3.(legs{1}).(['peak_' joints{j} '_val'])(1,:), Results_BW.JRL.session3.(legs{2}).(['peak_' joints{j} '_val'])(1,:)],36,clrs(end,:),'filled')
+                    scatter(bone_geom.(angles{k}) (1:10), [Results_BW.JRL.session1.(legs{1}).(['peak_' joints{j} '_val'])(1,:), Results_BW.JRL.session1.(legs{2}).(['peak_' joints{j} '_val'])(1,:)],36,dot_colors(1,:),'filled')
+                    scatter(bone_geom.(angles{k}) (11:20), [Results_BW.JRL.session2.(legs{1}).(['peak_' joints{j} '_val'])(1,:), Results_BW.JRL.session2.(legs{2}).(['peak_' joints{j} '_val'])(1,:)],36,dot_colors(2,:),'filled')
+                    scatter(bone_geom.(angles{k}) (21:end), [Results_BW.JRL.session3.(legs{1}).(['peak_' joints{j} '_val'])(1,:), Results_BW.JRL.session3.(legs{2}).(['peak_' joints{j} '_val'])(1,:)],36,dot_colors(end,:),'filled')
 
                     if two_peaks
-                        scatter(bone_geom.(angles{k}) (1:10), [Results_BW.JRL.session1.(legs{1}).(['peak_' joints{j} '_val'])(2,:), Results_BW.JRL.session1.(legs{2}).(['peak_' joints{j} '_val'])(2,:)],36,clrs(1,:),'filled')
-                        scatter(bone_geom.(angles{k}) (11:20), [Results_BW.JRL.session2.(legs{1}).(['peak_' joints{j} '_val'])(2,:), Results_BW.JRL.session2.(legs{2}).(['peak_' joints{j} '_val'])(2,:)],36,clrs(256/2,:),'filled')
-                        scatter(bone_geom.(angles{k}) (21:end), [Results_BW.JRL.session3.(legs{1}).(['peak_' joints{j} '_val'])(2,:), Results_BW.JRL.session3.(legs{2}).(['peak_' joints{j} '_val'])(2,:)],36,clrs(end,:),'filled')
+                        scatter(bone_geom.(angles{k}) (1:10), [Results_BW.JRL.session1.(legs{1}).(['peak_' joints{j} '_val'])(2,:), Results_BW.JRL.session1.(legs{2}).(['peak_' joints{j} '_val'])(2,:)],36,dot_colors(1,:),'filled')
+                        scatter(bone_geom.(angles{k}) (11:20), [Results_BW.JRL.session2.(legs{1}).(['peak_' joints{j} '_val'])(2,:), Results_BW.JRL.session2.(legs{2}).(['peak_' joints{j} '_val'])(2,:)],36,dot_colors(2,:),'filled')
+                        scatter(bone_geom.(angles{k}) (21:end), [Results_BW.JRL.session3.(legs{1}).(['peak_' joints{j} '_val'])(2,:), Results_BW.JRL.session3.(legs{2}).(['peak_' joints{j} '_val'])(2,:)],36,dot_colors(end,:),'filled')
                     end
 
                     %                 title([sessions{iDOF} ' ' legs{j} ' ' joints{k}])
