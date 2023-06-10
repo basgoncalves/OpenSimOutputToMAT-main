@@ -9,9 +9,9 @@ gather_data_in_struct = false;
 
 run_stats =                 true;
 plot_JRF_curve_and_peaks =  false;
-scatter_peaks_angles =      true; plot_muscles = false; two_peaks = false;
+scatter_peaks_angles =      false; plot_muscles = false; two_peaks = false;
 plot_corr =                 false;
-multiple_regress =          false; lin = true;
+multiple_regress =          true; lin = true;
 plot_SPM =                  false;
 clrs = parula;
 
@@ -135,10 +135,8 @@ if run_stats
                 bone_geom_1session = [subj_charac.(sessions{k}).(legs{1}).(angles{i}), subj_charac.(sessions{k}).(legs{2}).(angles{i})];
                 bone_geom.(angles{i}) = [bone_geom.(angles{i}), bone_geom_1session];
             end
-            if contains(angles{i},'TT')
+            if contains(angles{i},{'TT', 'AVA'})
                 bone_geom.leg_torsion = bone_geom.leg_torsion + bone_geom.(angles{i});
-            elseif contains(angles{i},'AVA')
-                bone_geom.leg_torsion = bone_geom.leg_torsion - bone_geom.(angles{i});
             end
         end
 
@@ -314,7 +312,7 @@ if run_stats
                 X(:,i) = bone_angles;
             end
         end
-        X(:,end+1) = X(:,end-1)-X(:,end);
+        X(:,end+1) = 
 
         for j =1:size(joints,1)
             y{j} = [Results_BW.JRL.session1.(legs{1}).(['peak_' joints{j} '_val'])(1,:), Results_BW.JRL.session1.(legs{2}).(['peak_' joints{j} '_val'])(1,:), Results_BW.JRL.session2.(legs{1}).(['peak_' joints{j} '_val'])(1,:), Results_BW.JRL.session2.(legs{2}).(['peak_' joints{j} '_val'])(1,:), Results_BW.JRL.session3.(legs{1}).(['peak_' joints{j} '_val'])(1,:), Results_BW.JRL.session3.(legs{2}).(['peak_' joints{j} '_val'])(1,:)]';
