@@ -842,7 +842,7 @@ for iMusc = 1:length(muscle_names_unique)
     % change ylim and yticks
     ylim([0 140])
     
-    add_spm_to_plot(SPM,140)
+    r = add_spm_to_plot(SPM,140);
 
     % add ylable to first col
     if any(iMusc == FirstCol)
@@ -977,7 +977,7 @@ for iJRL = 1:length(JRL_names)
     % change ylim and yticks
 %     ylim([0 6])
     
-    add_spm_to_plot(SPM)
+    r = add_spm_to_plot(SPM);
 
     % add ylable to first col
     if any(iJRL == FirstCol)
@@ -1258,12 +1258,12 @@ end
 tight_subplot_ticks(ha,0,0)
 
 % --------------------------------------------------------------------------------------------------------------- %
-function add_spm_to_plot(SPM,colors,yPosition)
+function r = add_spm_to_plot(SPM,colors,yPosition)
 
 comparisons = fields(SPM);
 nComp = length(comparisons);
 
-% if no colors are selected
+% if no colors ddre selected
 if nargin < 2 || isempty(colors)
     colors = getColor('parula',nComp);
 elseif length(colors) ~= length(comparisons)
@@ -1307,7 +1307,7 @@ for iComp = 1:nComp
         height = distance_between_rectanges/2;
 
         % Draw the rectangle
-        rectangle('Position', [x_rect, y_rect, width, height], 'FaceColor', colors(iComp,:), 'EdgeColor','none')
+        r = rectangle('Position', [x_rect, y_rect, width, height], 'FaceColor', colors(iComp,:), 'EdgeColor','none')
     end
 end
 
@@ -1415,7 +1415,7 @@ for iAng= 1:length(angle_names_unique)
     % change ylim and yticks
 %     ylim([0 140])
     
-    add_spm_to_plot(SPM,140)
+    r = add_spm_to_plot(SPM,140);
 
     % add ylable to first col
     if any(iAng == FirstCol)
@@ -1556,7 +1556,7 @@ for iID = 1:length(ID_names)
     ylim([-0.15 0.15])
     xlim([0 100])
     
-    add_spm_to_plot(SPM,'parula',0.1)
+    r = add_spm_to_plot(SPM,'parula',0.1);
 
     % add ylable to first col
     if any(iID == FirstCol)

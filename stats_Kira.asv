@@ -11,9 +11,9 @@ run_stats =                 true;
 plot_JRF_curve_and_peaks =  false;
 scatter_peaks_angles =      true; plot_muscles = false; two_peaks = false;
 plot_corr =                 false;
-multiple_regress =          true; lin = true;
+multiple_regress =          false; lin = true;
 plot_SPM =                  false;
-clrs = parula;
+clrs = 'parula';
 
 %% organise data in struct
 if gather_data_in_struct
@@ -173,6 +173,8 @@ if run_stats
         muscles_r = muscles(contains(muscles,'_r_'));
         muscles_l = muscles(contains(muscles,'_l_'));
 
+dot_colors = getColor(clrs,3);
+
         if plot_muscles
             for o = size(angles,1)
                 nb_plots = size(muscles_r,1);
@@ -183,17 +185,17 @@ if run_stats
                         axes(ax(count)); hold on; grid on;
 
                         %                             plot(Results_BW.JRL.(sessions{iDOF}).(legs{j}).(joints{k})); hold on;
-                        scatter(bone_geom.(angles{k}) (1:10), [Results_BW.SO.session1.(legs{1}).(muscles_l{j})(1,:), Results_BW.SO.session1.(legs{2}).(muscles_r{j})(1,:)],36,clrs(1,:),'filled')
-                        scatter(bone_geom.(angles{k}) (11:20), [Results_BW.SO.session2.(legs{1}).(muscles_l{j})(1,:), Results_BW.SO.session2.(legs{2}).(muscles_r{j})(1,:)],36,clrs(256/2,:),'filled')
-                        scatter(bone_geom.(angles{k}) (21:end), [Results_BW.SO.session3.(legs{1}).(muscles_l{j})(1,:), Results_BW.SO.session3.(legs{2}).(muscles_r{j})(1,:)],36,clrs(end,:),'filled')
+                        scatter(bone_geom.(angles{k}) (1:10), [Results_BW.SO.session1.(legs{1}).(muscles_l{j})(1,:), Results_BW.SO.session1.(legs{2}).(muscles_r{j})(1,:)],36,dot_colors(1,:),'filled')
+                        scatter(bone_geom.(angles{k}) (11:20), [Results_BW.SO.session2.(legs{1}).(muscles_l{j})(1,:), Results_BW.SO.session2.(legs{2}).(muscles_r{j})(1,:)],36,dot_colors(2,:),'filled')
+                        scatter(bone_geom.(angles{k}) (21:end), [Results_BW.SO.session3.(legs{1}).(muscles_l{j})(1,:), Results_BW.SO.session3.(legs{2}).(muscles_r{j})(1,:)],36,dot_colors(end,:),'filled')
 
 
                         %                 title([sessions{iDOF} ' ' legs{j} ' ' joints{k}])
-                        if two_peaks
-                            legend('pre', '', 'post','', 'TD', '') % two peaks
-                        else
-                            legend('pre', 'post', 'TD') % one peak
-                        end
+%                         if two_peaks
+%                             legend('pre', '', 'post','', 'TD', '') % two peaks
+%                         else
+%                             legend('pre', 'post', 'TD') % one peak
+%                         end
 
                         if any(count == FirstCol)
                             ylabel(['Peak muscle forces [N/BW]'])
@@ -204,8 +206,12 @@ if run_stats
                         count = count +1;
                     end
 
-                tight_subplot_ticks (ax,LastRow,FirstCol)
-        end
+                    tight_subplot_ticks (ax,LastRow,FirstCol)
+                    % add legend
+                    lg = legend({'pre' 'post' 'td' });
+                    lg.FontSize = 12;
+                    lg.Position = [0.8 0.12 0.05 0.1];
+            end
         else
             nb_plots = size(angles,1)*size(joints,1);
             [ax, pos,FirstCol,LastRow,LastCol] = tight_subplot(nb_plots,0,[],[0.1 0.05],[0.1 0.05]);
@@ -215,22 +221,22 @@ if run_stats
                     axes(ax(count)); hold on; grid on;
 
                     %                             plot(Results_BW.JRL.(sessions{iDOF}).(legs{j}).(joints{k})); hold on;
-                    scatter(bone_geom.(angles{k}) (1:10), [Results_BW.JRL.session1.(legs{1}).(['peak_' joints{j} '_val'])(1,:), Results_BW.JRL.session1.(legs{2}).(['peak_' joints{j} '_val'])(1,:)],36,clrs(1,:),'filled')
-                    scatter(bone_geom.(angles{k}) (11:20), [Results_BW.JRL.session2.(legs{1}).(['peak_' joints{j} '_val'])(1,:), Results_BW.JRL.session2.(legs{2}).(['peak_' joints{j} '_val'])(1,:)],36,clrs(256/2,:),'filled')
-                    scatter(bone_geom.(angles{k}) (21:end), [Results_BW.JRL.session3.(legs{1}).(['peak_' joints{j} '_val'])(1,:), Results_BW.JRL.session3.(legs{2}).(['peak_' joints{j} '_val'])(1,:)],36,clrs(end,:),'filled')
+                    scatter(bone_geom.(angles{k}) (1:10), [Results_BW.JRL.session1.(legs{1}).(['peak_' joints{j} '_val'])(1,:), Results_BW.JRL.session1.(legs{2}).(['peak_' joints{j} '_val'])(1,:)],36,dot_colors(1,:),'filled')
+                    scatter(bone_geom.(angles{k}) (11:20), [Results_BW.JRL.session2.(legs{1}).(['peak_' joints{j} '_val'])(1,:), Results_BW.JRL.session2.(legs{2}).(['peak_' joints{j} '_val'])(1,:)],36,dot_colors(2,:),'filled')
+                    scatter(bone_geom.(angles{k}) (21:end), [Results_BW.JRL.session3.(legs{1}).(['peak_' joints{j} '_val'])(1,:), Results_BW.JRL.session3.(legs{2}).(['peak_' joints{j} '_val'])(1,:)],36,dot_colors(end,:),'filled')
 
                     if two_peaks
-                        scatter(bone_geom.(angles{k}) (1:10), [Results_BW.JRL.session1.(legs{1}).(['peak_' joints{j} '_val'])(2,:), Results_BW.JRL.session1.(legs{2}).(['peak_' joints{j} '_val'])(2,:)],36,clrs(1,:),'filled')
-                        scatter(bone_geom.(angles{k}) (11:20), [Results_BW.JRL.session2.(legs{1}).(['peak_' joints{j} '_val'])(2,:), Results_BW.JRL.session2.(legs{2}).(['peak_' joints{j} '_val'])(2,:)],36,clrs(256/2,:),'filled')
-                        scatter(bone_geom.(angles{k}) (21:end), [Results_BW.JRL.session3.(legs{1}).(['peak_' joints{j} '_val'])(2,:), Results_BW.JRL.session3.(legs{2}).(['peak_' joints{j} '_val'])(2,:)],36,clrs(end,:),'filled')
+                        scatter(bone_geom.(angles{k}) (1:10), [Results_BW.JRL.session1.(legs{1}).(['peak_' joints{j} '_val'])(2,:), Results_BW.JRL.session1.(legs{2}).(['peak_' joints{j} '_val'])(2,:)],36,dot_colors(1,:),'filled')
+                        scatter(bone_geom.(angles{k}) (11:20), [Results_BW.JRL.session2.(legs{1}).(['peak_' joints{j} '_val'])(2,:), Results_BW.JRL.session2.(legs{2}).(['peak_' joints{j} '_val'])(2,:)],36,dot_colors(2,:),'filled')
+                        scatter(bone_geom.(angles{k}) (21:end), [Results_BW.JRL.session3.(legs{1}).(['peak_' joints{j} '_val'])(2,:), Results_BW.JRL.session3.(legs{2}).(['peak_' joints{j} '_val'])(2,:)],36,dot_colors(end,:),'filled')
                     end
 
                     %                 title([sessions{iDOF} ' ' legs{j} ' ' joints{k}])
-                    if two_peaks
-                        legend('pre', '', 'post','', 'TD', '') % two peaks
-                    else
-                        legend('pre', 'post', 'TD') % one peak
-                    end
+%                     if two_peaks
+%                         legend('pre', '', 'post','', 'TD', '') % two peaks
+%                     else
+%                         legend('pre', 'post', 'TD') % one peak
+%                     end
 
                     if any(count == FirstCol)
                         ylabel(['Peak ' joints{j} ' [N/BW]'])
@@ -242,9 +248,16 @@ if run_stats
                 end
             end
             tight_subplot_ticks (ax,LastRow,FirstCol)
+       
+                    % add legend
+                    lg = legend({'pre' 'post' 'td' });
+                    lg.FontSize = 10;
+                    lg.FontName = 'Arial';
+%                     fontsize(gcf,20,"points");
+                    lg.Position = [0.8 0.12 0.05 0.1];
             
         end
-            angles{end} = [];
+            angles(end) = [];
     end
 
     % correlation plots
@@ -284,13 +297,9 @@ if run_stats
         tight_subplot_ticks (ax,LastRow,FirstCol)
     end
 
-    %     x = Results.JRL.session1.left.peak_HCF';
-    %     y = Results.JRL.session1.right.peak_HCF';
-    %     [rsquared,pvalue, p1,rlo,rup] = plotCorr (x,y,1,0.05);
 
     if plot_SPM
         %     plot kinematics
-
         plotKinematics(Results)
 
         % plot moments
@@ -315,33 +324,37 @@ if run_stats
                 X(:,i) = bone_angles;
             end
         end
-        X(:,end+1) = X(:,end-1)-X(:,end);
+        X(:,end+1) = X(:,end)-X(:,end-1);
 
-        for j =1:size(joints,1)
-            y{j} = [Results_BW.JRL.session1.(legs{1}).(['peak_' joints{j} '_val'])(1,:), Results_BW.JRL.session1.(legs{2}).(['peak_' joints{j} '_val'])(1,:), Results_BW.JRL.session2.(legs{1}).(['peak_' joints{j} '_val'])(1,:), Results_BW.JRL.session2.(legs{2}).(['peak_' joints{j} '_val'])(1,:), Results_BW.JRL.session3.(legs{1}).(['peak_' joints{j} '_val'])(1,:), Results_BW.JRL.session3.(legs{2}).(['peak_' joints{j} '_val'])(1,:)]';
-            if lin
-                [b{j},bint{j},r{j},rint{j},stats{j}] = regress(y{j},X); % stats =  R2 statistic, F-statistic and its p-value, estimate of the error variance
-            end
-            %         modelfun = @(b,x)b(1) + b(2)*x(:,1).^b(3) + b(4)*x(:,2).^b(5)+b(6)*x(:,3).^b(7);
-            %         beta0 = [-50 20 -1 150 -1 4 37];
-            %         mdl{j} = fitnlm(X,y{j},modelfun,beta0);
-            %         clear modelfun beta0
-        end
+% y_HCF = [Results_BW.JRL.session1.(legs{1}).(['peak_' joints{1} '_val'])(1,:), Results_BW.JRL.session1.(legs{2}).(['peak_' joints{1} '_val'])(1,:), Results_BW.JRL.session2.(legs{1}).(['peak_' joints{1} '_val'])(1,:), Results_BW.JRL.session2.(legs{2}).(['peak_' joints{1} '_val'])(1,:), Results_BW.JRL.session3.(legs{1}).(['peak_' joints{1} '_val'])(1,:), Results_BW.JRL.session3.(legs{2}).(['peak_' joints{1} '_val'])(1,:)]';
+%             if lin
+%                 [b_HCF,bint_HCF,r_HCF,rint_HCF,stats_HCF] = regress(y_HCF,X); % stats =  R2 statistic, F-statistic and its p-value, estimate of the error variance
+%             end
 
-        % % plot data and regression model
-        % for i = size(y,2)
-        % scatter3(X(:,1),X(:,2),X(:,3),y{1,i},'filled')
-        % hold on
+%         for j =1:size(joints,1)
+%             y{j} = [Results_BW.JRL.session1.(legs{1}).(['peak_' joints{j} '_val'])(1,:), Results_BW.JRL.session1.(legs{2}).(['peak_' joints{j} '_val'])(1,:), Results_BW.JRL.session2.(legs{1}).(['peak_' joints{j} '_val'])(1,:), Results_BW.JRL.session2.(legs{2}).(['peak_' joints{j} '_val'])(1,:), Results_BW.JRL.session3.(legs{1}).(['peak_' joints{j} '_val'])(1,:), Results_BW.JRL.session3.(legs{2}).(['peak_' joints{j} '_val'])(1,:)]';
+%             if lin
+%                 [b{j},bint{j},r{j},rint{j},stats{j}] = regress(y{j},X); % stats =  R2 statistic, F-statistic and its p-value, estimate of the error variance
+%             end
+%             %         modelfun = @(b,x)b(1) + b(2)*x(:,1).^b(3) + b(4)*x(:,2).^b(5)+b(6)*x(:,3).^b(7);
+%             %         beta0 = [-50 20 -1 150 -1 4 37];
+%             %         mdl{j} = fitnlm(X,y{j},modelfun,beta0);
+%             %         clear modelfun beta0
+%         end
+
+        % plot data and regression model
         % x1fit = min(X(:,1)):100:max(X(:,1));
-        % x2fit = min(X(:,2)):10:max(X(:,2));
-        % x3fit = min(X(:,3)):10:max(X(:,3));
-        % [X1FIT,X2FIT] = meshgrid(x1fit,x2fit);
-        % YFIT = b{1,i}(1) + b{1,i}(2)*X1FIT + b{1,i}(3)*X2FIT + b{1,i}(4)*X1FIT.*X2FIT;
-        % mesh(X1FIT,X2FIT,YFIT)
-        % xlabel('NSA')
-        % ylabel('AVA')
-        % zlabel('TT')
-        % view(50,10)
+        %         x2fit = min(X(:,2)):10:max(X(:,2));
+        x3fit = min(X(:,3)):1:max(X(:,3));
+        x4fit = min(X(:,4)):1:max(X(:,4));
+
+        [X3FIT,X4FIT] = meshgrid(x3fit,x4fit);
+        YFIT = 5.241943771 + 0.038691929*X3FIT + (-0.026951144)*X4FIT;
+        mesh(X3FIT,X4FIT,YFIT)
+        xlabel('AVA [°]')
+        ylabel('TT [°]')
+        zlabel('peak HCF [N/BW]')
+        view(50,10)
         % hold off
         % clear X1FIT X2FIT YFIT
 

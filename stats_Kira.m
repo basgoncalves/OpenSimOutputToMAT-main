@@ -5,7 +5,7 @@ function stats_Kira()
 [Results] = get_data_struct;
 S = get_subjects;
 
-gather_data_in_struct = true;
+gather_data_in_struct = false;
 
 run_stats =                 true;
 plot_JRF_curve_and_peaks =  false;
@@ -14,6 +14,9 @@ plot_corr =                 false;
 multiple_regress =          false; lin = true;
 plot_SPM =                  false;
 clrs = 'parula';
+
+font_size = 10;
+font_name = 'Arial';
 
 %% organise data in struct
 if gather_data_in_struct
@@ -191,23 +194,35 @@ dot_colors = getColor(clrs,3);
 
 
                         %                 title([sessions{iDOF} ' ' legs{j} ' ' joints{k}])
-                        if two_peaks
-                            legend('pre', '', 'post','', 'TD', '') % two peaks
-                        else
-                            legend('pre', 'post', 'TD') % one peak
-                        end
+%                         if two_peaks
+%                             legend('pre', '', 'post','', 'TD', '') % two peaks
+%                         else
+%                             legend('pre', 'post', 'TD') % one peak
+%                         end
 
-                        if any(count == FirstCol)
-                            ylabel(['Peak muscle forces [N/BW]'])
-                        end
-                        if any(count == LastRow)
-                            xlabel([angles{k} ' [°]'], 'Interpreter', 'None')
-                        end
+                         if any(count == FirstCol)
+                        ylabel(['Peak muscle forces [N/BW]'])
+                        y = gca;
+                        y.FontSize = font_size;
+                        y.FontName = font_name;
+                    end
+                    if any(count == LastRow)
+                        xlabel([angles{k} ' [°]'], 'Interpreter', 'None')
+                                                x = gca;
+                        x.FontSize = font_size;
+                        x.FontName = font_name;
+                    end
                         count = count +1;
                     end
 
-                tight_subplot_ticks (ax,LastRow,FirstCol)
-        end
+                    tight_subplot_ticks (ax,LastRow,FirstCol)
+                    % add legend
+                    lg = legend({'pre' 'post' 'td' });
+                    lg.FontSize = font_size;
+                    lg.FontName = font_name;
+%                     lg.Position = [0.8 0.12 0.05 0.1]
+                    lg.Location = 'best';
+            end
         else
             nb_plots = size(angles,1)*size(joints,1);
             [ax, pos,FirstCol,LastRow,LastCol] = tight_subplot(nb_plots,0,[],[0.1 0.05],[0.1 0.05]);
@@ -228,22 +243,36 @@ dot_colors = getColor(clrs,3);
                     end
 
                     %                 title([sessions{iDOF} ' ' legs{j} ' ' joints{k}])
-                    if two_peaks
-                        legend('pre', '', 'post','', 'TD', '') % two peaks
-                    else
-                        legend('pre', 'post', 'TD') % one peak
-                    end
+%                     if two_peaks
+%                         legend('pre', '', 'post','', 'TD', '') % two peaks
+%                     else
+%                         legend('pre', 'post', 'TD') % one peak
+%                     end
 
                     if any(count == FirstCol)
                         ylabel(['Peak ' joints{j} ' [N/BW]'])
+                        y = gca;
+                        y.FontSize = font_size;
+                        y.FontName = font_name;
                     end
                     if any(count == LastRow)
                         xlabel([angles{k} ' [°]'], 'Interpreter', 'None')
+                                                x = gca;
+                        x.FontSize = font_size;
+                        x.FontName = font_name;
                     end
                     count = count +1;
                 end
             end
             tight_subplot_ticks (ax,LastRow,FirstCol)
+       
+                    % add legend
+                    lg = legend({'pre' 'post' 'td' });
+                    lg.FontSize = font_size;
+                    lg.FontName = font_name;
+%                     fontsize(gcf,20,"points");
+%                     lg.Position = [0.8 0.12 0.05 0.1];
+                    lg.Location = 'best';
             
         end
             angles(end) = [];
@@ -315,10 +344,10 @@ dot_colors = getColor(clrs,3);
         end
         X(:,end+1) = X(:,end)-X(:,end-1);
 
-y_HCF = [Results_BW.JRL.session1.(legs{1}).(['peak_' joints{1} '_val'])(1,:), Results_BW.JRL.session1.(legs{2}).(['peak_' joints{1} '_val'])(1,:), Results_BW.JRL.session2.(legs{1}).(['peak_' joints{1} '_val'])(1,:), Results_BW.JRL.session2.(legs{2}).(['peak_' joints{1} '_val'])(1,:), Results_BW.JRL.session3.(legs{1}).(['peak_' joints{1} '_val'])(1,:), Results_BW.JRL.session3.(legs{2}).(['peak_' joints{1} '_val'])(1,:)]';
-            if lin
-                [b_HCF,bint_HCF,r_HCF,rint_HCF,stats_HCF] = regress(y_HCF,X); % stats =  R2 statistic, F-statistic and its p-value, estimate of the error variance
-            end
+% y_HCF = [Results_BW.JRL.session1.(legs{1}).(['peak_' joints{1} '_val'])(1,:), Results_BW.JRL.session1.(legs{2}).(['peak_' joints{1} '_val'])(1,:), Results_BW.JRL.session2.(legs{1}).(['peak_' joints{1} '_val'])(1,:), Results_BW.JRL.session2.(legs{2}).(['peak_' joints{1} '_val'])(1,:), Results_BW.JRL.session3.(legs{1}).(['peak_' joints{1} '_val'])(1,:), Results_BW.JRL.session3.(legs{2}).(['peak_' joints{1} '_val'])(1,:)]';
+%             if lin
+%                 [b_HCF,bint_HCF,r_HCF,rint_HCF,stats_HCF] = regress(y_HCF,X); % stats =  R2 statistic, F-statistic and its p-value, estimate of the error variance
+%             end
 
 %         for j =1:size(joints,1)
 %             y{j} = [Results_BW.JRL.session1.(legs{1}).(['peak_' joints{j} '_val'])(1,:), Results_BW.JRL.session1.(legs{2}).(['peak_' joints{j} '_val'])(1,:), Results_BW.JRL.session2.(legs{1}).(['peak_' joints{j} '_val'])(1,:), Results_BW.JRL.session2.(legs{2}).(['peak_' joints{j} '_val'])(1,:), Results_BW.JRL.session3.(legs{1}).(['peak_' joints{j} '_val'])(1,:), Results_BW.JRL.session3.(legs{2}).(['peak_' joints{j} '_val'])(1,:)]';
@@ -331,20 +360,19 @@ y_HCF = [Results_BW.JRL.session1.(legs{1}).(['peak_' joints{1} '_val'])(1,:), Re
 %             %         clear modelfun beta0
 %         end
 
-        % % plot data and regression model
-        % for i = size(y,2)
-        % scatter3(X(:,1),X(:,2),X(:,3),y{1,i},'filled')
-        % hold on
+        % plot data and regression model
         % x1fit = min(X(:,1)):100:max(X(:,1));
-        % x2fit = min(X(:,2)):10:max(X(:,2));
-        % x3fit = min(X(:,3)):10:max(X(:,3));
-        % [X1FIT,X2FIT] = meshgrid(x1fit,x2fit);
-        % YFIT = b{1,i}(1) + b{1,i}(2)*X1FIT + b{1,i}(3)*X2FIT + b{1,i}(4)*X1FIT.*X2FIT;
-        % mesh(X1FIT,X2FIT,YFIT)
-        % xlabel('NSA')
-        % ylabel('AVA')
-        % zlabel('TT')
-        % view(50,10)
+        %         x2fit = min(X(:,2)):10:max(X(:,2));
+        x3fit = min(X(:,3)):1:max(X(:,3));
+        x4fit = min(X(:,4)):1:max(X(:,4));
+
+        [X3FIT,X4FIT] = meshgrid(x3fit,x4fit);
+        YFIT = 5.241943771 + 0.038691929*X3FIT + (-0.026951144)*X4FIT;
+        mesh(X3FIT,X4FIT,YFIT)
+        xlabel('AVA [°]')
+        ylabel('TT [°]')
+        zlabel('peak HCF [N/BW]')
+        view(50,10)
         % hold off
         % clear X1FIT X2FIT YFIT
 
