@@ -56,13 +56,13 @@ if run_stats
     Results = calculatePeaks(Results);
     Results = add_participant_mass_to_results_struct(Results);
 
-%     plotMuscleForces(Results,'Normalised')
+    plotMuscleForces(Results,'Normalised',Bonf_corr)
 
-    plotContactForces(Results)
+%     plotContactForces(Results, Bonf_corr)
 
-%     plotIK(Results,'Absolute')
+%     plotIK(Results,'Absolute', Bonf_corr)
 
-%     plotID(Results)
+%     plotID(Results, Bonf_corr)
 end
 
 %% -------------------------------------------------------------------------------------------------------------- %
@@ -752,7 +752,7 @@ alpha 0.2                                                           % transparen
 set(f1,'FaceColor', Color,'EdgeColor','none')
 
 % --------------------------------------------------------------------------------------------------------------- %
-function plotMuscleForces(Results,Type) % plot all muscle forces and run t-test SPM to compare (pre,post, & TD)
+function plotMuscleForces(Results,Type, Bonf_corr) % plot all muscle forces and run t-test SPM to compare (pre,post, & TD)
 if nargin < 2
     Type ='Normalised';
 end
@@ -835,7 +835,7 @@ muscle_names = cellfun(@(str) [str(1:end-1) leg(1)], muscle_names, 'UniformOutpu
     end
     % run and save SPM plots
     group_types = [1,1,2];
-    [SPM] = ttest_spm(indData,group_types);
+    [SPM] = ttest_spm(indData,group_types, Bonf_corr);
     suptitle([current_muscle])
 
     savedir = [get_main_dir() fp 'SPM_results'];
@@ -887,7 +887,7 @@ saveas(gcf, [savedir fp 'muscle_forces' leg '.jpeg'])
 
 
 % --------------------------------------------------------------------------------------------------------------- %
-function plotContactForces(Results) % plot all muscle forces and run t-test SPM to compare (pre,post, & TD)
+function plotContactForces(Results, Bonf_corr) % plot all muscle forces and run t-test SPM to compare (pre,post, & TD)
 
 legs = {'left','right'};
 line_colors = getColor('parula',3);
@@ -970,7 +970,7 @@ for iJRL = 1:length(JRL_names)
 
     % run and save SPM plots
     group_types = [1,1,2];
-    [SPM] = ttest_spm(indData,group_types);
+    [SPM] = ttest_spm(indData,group_types, Bonf_corr);
     suptitle([current_JRL_variable_title])
 
     savedir = [get_main_dir() fp 'SPM_results' fp 'JRL'];
@@ -985,7 +985,7 @@ for iJRL = 1:length(JRL_names)
     % change ylim and yticks
 %     ylim([0 6])
     
-    r = add_spm_to_plot(SPM);
+    r = add_spm_to_plot(SPM,[],8.5);
 
     % add ylable to first col
     if any(iJRL == FirstCol)
@@ -1197,13 +1197,13 @@ end
 % --------------------------------------------------------------------------------------------------------------- %
 % ------------------------------------------- STATS FUNCTIONS --------------------------------------------------- %
 % --------------------------------------------------------------------------------------------------------------- %
-function [SPM] = ttest_spm(indData,group_types)
+function [SPM] = ttest_spm(indData,group_types, Bonf_corr)
 % type: 1 = independent / 2 = paired
 
 
 n_groups = length(indData);
 combinations = nchoosek([1:n_groups],2);
-Alpha = 0.05;%/size(combinations,1);
+Alpha = 0.05/Bonf_corr;%/size(combinations,1);
 
 ha = tight_subplot(1,n_groups,[],[],[],[0.05 0.3 0.9 0.5]);
 SPM = struct;
@@ -1289,7 +1289,7 @@ if nargin < 3
     ylim([min(ylim) ceil(yPosition)])
 end
 
-distance_between_rectanges = range(ylim)*0.05;
+distance_between_rectanges = yPosition*0.05;
 
 for iComp = 1:nComp
 
@@ -1326,6 +1326,7 @@ for iComp = 1:nComp
         end
 
     end
+
     % Draw fake rectangle for the legend entry
             hold on
             rectangle_plot = plot(NaN, NaN, 's', 'MarkerFaceColor', colors_rect(iComp,:), 'MarkerEdgeColor', 'none');
@@ -1345,7 +1346,7 @@ x_new = [x_new, x(end)];
 
 
 % --------------------------------------------------------------------------------------------------------------- %
-function plotIK(Results,Type) % plot kinematics and run t-test SPM to compare (pre,post, & TD)
+function plotIK(Results,Type, Bonf_corr) % plot kinematics and run t-test SPM to compare (pre,post, & TD)
 if nargin < 2
     Type ='Absolute';
 end
@@ -1426,7 +1427,7 @@ for iAng= 1:length(angle_names_unique)
     end
     % run and save SPM plots
     group_types = [1,1,2];
-    [SPM] = ttest_spm(indData,group_types);
+    [SPM] = ttest_spm(indData,group_types, Bonf_corr);
     suptitle([current_angle])
 
     savedir = [get_main_dir() fp 'SPM_results'];
@@ -1478,7 +1479,7 @@ saveas(gcf, [savedir fp 'kinematics' leg '.jpeg'])
 
 
 % --------------------------------------------------------------------------------------------------------------- %
-function plotID(Results) % plot all moments and run t-test SPM to compare (pre,post, & TD)
+function plotID(Results, Bonf_corr) % plot all moments and run t-test SPM to compare (pre,post, & TD)
 
 legs = {'left','right'};
 line_colors = getColor('parula',3);
@@ -1566,7 +1567,7 @@ for iID = 1:length(ID_names)
 
     % run and save SPM plots
     group_types = [1,1,2];
-    [SPM] = ttest_spm(indData,group_types);
+    [SPM] = ttest_spm(indData,group_types, Bonf_corr);
     suptitle([current_ID_variable_title])
 
     savedir = [get_main_dir() fp 'SPM_results' fp 'ID'];
