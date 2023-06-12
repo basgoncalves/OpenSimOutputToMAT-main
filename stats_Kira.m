@@ -56,9 +56,9 @@ if run_stats
     Results = calculatePeaks(Results);
     Results = add_participant_mass_to_results_struct(Results);
 
-    plotMuscleForces(Results,'Normalised')
+    plotMuscleForces(Results,'Normalised') % normalised to max isom force
 
-    plotContactForces(Results)
+    plotContactForces(Results) % normalise to BW
 
 end
 
@@ -359,7 +359,6 @@ for iVar = variables'
         end
     end
 end
-
 
 % --------------------------------------------------------------------------------------------------------------- %
 function [out,RemovedIdx] = removeNaNrows (data, Dim)
@@ -922,7 +921,7 @@ for iJRL = 1:length(JRL_names)
             mass_current_session = Results.Mass.(session)(~isnan(Results.Mass.(session)));
 
             % participant not good data
-            if iSess == 3
+            if iSess == 3 && length(mass_current_session) > 3
                 single_varibale_JRL(:,7)=NaN;
                 mass_current_session(1) = [];
                 warning on
