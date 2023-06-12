@@ -875,7 +875,7 @@ end
 suptitle(['muscle forces ' Type])
 
 % add legend
-lg = legend({'pre' 'sd' 'post' '' 'td' '' 'pre vs post' 'pre vs TD' 'post vs TD'});
+lg = legend({'pre' 'sd' 'post' '' 'td' '' 'pre vs post' '2 vs 3' '2 vs 3'});
 lg.FontSize = 12;
 lg.Position = [0.8 0.12 0.05 0.1];
 
@@ -1003,7 +1003,7 @@ end
 tight_subplot_ticks (ha,LastRow,0)
 
 % add legend
-lg = legend({'pre' 'sd' 'post' '' 'td' '' 'pre vs post' 'pre vs TD' 'post vs TD'});
+lg = legend({'pre' 'sd' 'post' '' 'td' '' 'pre vs post' '2 vs 3' '2 vs 3'});
 lg.FontSize = 10;
 lg.FontName = 'Arial';
 % lg.Position = [0.8 0.12 0.05 0.1];
@@ -1466,7 +1466,7 @@ end
 suptitle(['kinematics ' Type])
 
 % add legend
-lg = legend({'pre' 'sd' 'post' '' 'td' '' 'pre vs post' 'pre vs TD' 'post vs TD'});
+lg = legend({'pre' 'sd' 'post' '' 'td' '' 'pre vs post' 'pre vs TD' '2 vs 3'});
 lg.FontSize = 12;
 lg.Position = [0.8 0.12 0.05 0.1];
 
@@ -1602,7 +1602,7 @@ end
 tight_subplot_ticks (ha,LastRow,0)
 
 % add legend
-lg = legend({'pre' 'sd' '' 'post' '' 'td' '' 'pre vs post' 'pre vs TD' 'post vs TD'});
+lg = legend({'pre' 'sd' '' 'post' '' 'td' '' 'pre vs post' '2 vs 3' '2 vs 3'});
 lg.FontSize = 12;
 lg.Position = [0.8 0.12 0.05 0.1];
 
