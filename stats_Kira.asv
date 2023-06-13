@@ -55,7 +55,7 @@ if run_stats
     legs = {'left'; 'right'};
     sessions = {'session1'; 'session2'; 'session3'};
     joints = {'HCF'; 'KCF'; 'ACF'};
-    muscle_groups = {'glut_max'; 'glut_med'; 'glut_min';'adductors'; 'hamstrings'; 'iliopsoas'; 'tfl'; 'ext_rot'; 'rect_fem'};
+    muscle_groups = {'glut_max'; 'glut_med'; 'glut_min';'adductors'}
     angles = {'NSA'; 'AVA'; 'TT'};
     lgnd = {'P01','P02', 'P03', 'P04', 'P05';'P01','P02', 'P03', 'P04', 'P05';'TD02', 'TD03', 'TD04','',''};
 
@@ -102,7 +102,6 @@ if run_stats
     end
 
     Results_BW = create_muscle_groups(Results_BW); % add muscle groups
-    save('Results_BW.mat', 'Results_BW')
 
     % plot JRF by session incl. peaks
     if plot_JRF_curve_and_peaks
@@ -174,10 +173,10 @@ if run_stats
             end
         end
 
-%         muscles = muscles(~contains(muscles,{'1','2','3'}));
+        muscles = muscles(~contains(muscles,{'1','2','3'}));
         % muscles = muscles(contains(muscles,{'val'}));
-        muscles_r = append(muscle_groups, '_r');
-        muscles_l = append(muscle_groups, '_l');
+        muscles_r = muscles(contains(muscles,'_r_'));
+        muscles_l = muscles(contains(muscles,'_l_'));
 
 dot_colors = getColor(clrs,3);
 seg = {'';'_fx'; '_fy'; '_fz'};

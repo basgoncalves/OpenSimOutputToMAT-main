@@ -1,9 +1,9 @@
-clear all; close all;
+clear all; %close all;
 clc;
-addpath(genpath('C:\Users\Balu\Nextcloud\Documents\MA\Code\MSKmodelling')); 
+% addpath(genpath('C:\Users\Balu\Nextcloud\Documents\MA\Code\MSKmodelling')); 
 
 %% individual data to be changed before every run
-subj = 'P02';
+subj = 'P01';
 surg = '\post';%\pre or \post or ''
 root_path = 'C:\Users\Balu\Nextcloud\Documents\MA\Code\Kira_MSc_data\';
 %% choose what you want to run
@@ -13,9 +13,9 @@ replace_nan = 0;
 mod_max_isom_force = 0; force_factor = 2;
 IK_max_error = 0;
 check_muscle_moment_arm = 0;
-plot_IK = 1;
+plot_IK = 0;
 plot_ID = 0;
-plot_SO = 0;
+plot_SO = 1; activation = 0; forces = 1;
 plot_JRL = 0;
 plot_std = 0;
 plot_all_trials = 1; % plot all trials individually (1) or average with standard deviation (0)
@@ -243,8 +243,7 @@ if plot_SO == 1
     muscles_var_list = {'psoas_r', 'med_gas_r',  'lat_gas_r', 'bifemlh_r','rect_fem_r','soleus_r', 'glut_max1_r', 'glut_max2_r', 'glut_max3_r', 'psoas_l', 'med_gas_l',  'lat_gas_l', 'bifemlh_l','rect_fem_l','soleus_l', 'glut_max1_r', 'glut_max2_r', 'glut_max3_r'};
 
     %                     'tibialis anterior', 'gastrocnemius medialis',  'gastrocnemius lateralis', 'flexor hallucis','rectus femoris','soleus'};
-    activation = 1;
-    forces = 1;
+   
     if activation == 1
         file_path_end = '\Output\SO\_StaticOptimization_activation.sto';
         y_label = 'muscle activation [%]';
@@ -292,6 +291,7 @@ if plot_SO == 1
         filename = 'muscle_forces_';
         if plot_all_trials == 1
             plot_data(trial_list, muscles_var_list, subject_folder, events_folder, file_path_end, y_label, subj_mass, BW_norm, calc)
+%             legend(trial_list)
         end
         if plot_std == 1
             %     saveas(gcf,[subj '_muscle_forces.tif'])

@@ -11,20 +11,18 @@ jcf = struct;
 legs = {'left'; 'right'};
 sessions = {'session1'; 'session2'; 'session3'};
 joints = {'HCF'; 'KCF'; 'ACF'};
+muscle_groups = {'glut_max'; 'glut_med'; 'glut_min';'adductors'; 'hamstrings'; 'iliopsoas'; 'tfl'; 'ext_rot'; 'rect_fem'};
 
 % data_pre = struct;
 % data_post = struct;
 % data_TD = struct;
 
-load([get_main_dir fp 'results_BW.mat']);
-muscles = fields(Results_BW.SO.(sessions{1}).(legs{1}));
-muscles = muscles(~contains(muscles,{'time', 'duration', 'reserve', 'FX', 'FY', 'FZ', 'MX', 'MY', 'MZ','1','2','3','extobl', 'intobl','ercspn'}));
-muscles = muscles(contains(muscles,{'val'}));
-muscles_r = muscles(contains(muscles,'_r_'));
-muscles_l = muscles(contains(muscles,'_l_'));
+load([get_main_dir fp 'Results_BW.mat']);
+muscles_r = append(muscle_groups,'_r');
+muscles_l = append(muscle_groups,'_l');
 
-alpha_jcf = alpha/size(joints,1);
-alpha_m = alpha/size(muscles_l,1);
+alpha_jcf = alpha/3;
+alpha_m = alpha;
 
 %% JCF
 

@@ -56,13 +56,13 @@ if run_stats
     Results = calculatePeaks(Results);
     Results = add_participant_mass_to_results_struct(Results);
 
-    plotMuscleForces(Results,'Normalised',Bonf_corr)
+%     plotMuscleForces(Results,'Normalised',Bonf_corr)
 
-%     plotContactForces(Results, Bonf_corr)
+%     plotContactForces(Results, 12)
 
-%     plotIK(Results,'Absolute', Bonf_corr)
+    plotIK(Results,'Absolute', 1)
 
-%     plotID(Results, Bonf_corr)
+%     plotID(Results, 3)
 end
 
 %% -------------------------------------------------------------------------------------------------------------- %
@@ -1322,7 +1322,7 @@ for iComp = 1:nComp
 
         % Draw the rectangle
         if ~isnan(x_rect)
-            r = rectangle('Position', [x_rect, y_rect, width, height], 'FaceColor', colors_rect(iComp,:), 'EdgeColor','none');    
+            r = rectangle('Position', [x_rect, y_rect, width, height], 'FaceColor', colors_rect(iComp,:), 'EdgeColor','none');
         end
 
     end

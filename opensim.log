@@ -999,3 +999,27 @@
 [2023-06-12 11:19:33.058] [warning] Couldn't find file 'hat_jaw.vtp'.
 [2023-06-12 11:19:33.058] [warning] Couldn't find file 'hat_skull.vtp'.
 [2023-06-12 11:19:33.058] [warning] Couldn't find file 'hat_ribs.vtp'.
+[2023-06-12 16:42:46.995] [info] Storage: read data file = C:\Users\Balu\Nextcloud\Documents\MA\Code\Kira_MSc_data\P02\post\output automization\FINAL_PERSONALISEDTORSIONS_scaled_final\dynamic07\Output\IK\IK.mot (nr=623 nc=24)
+[2023-06-12 16:42:47.166] [info] Loaded model P02_scaled from file C:\Users\Balu\Nextcloud\Documents\MA\Code\Kira_MSc_data\P02\post\Model\FINAL_PERSONALISEDTORSIONS_scaled_final.osim
+[2023-06-12 16:42:47.168] [warning] Couldn't find file 'treadmill.vtp'.
+[2023-06-12 16:42:47.169] [warning] Couldn't find file 'sacrum.vtp'.
+[2023-06-12 16:42:47.169] [warning] Couldn't find file 'pelvis.vtp'.
+[2023-06-12 16:42:47.169] [warning] Couldn't find file 'l_pelvis.vtp'.
+[2023-06-12 16:42:47.172] [warning] Couldn't find file 'fibula.vtp'.
+[2023-06-12 16:42:47.176] [warning] Couldn't find file 'fibula_l.vtp'.
+[2023-06-12 16:42:47.177] [warning] Couldn't find file 'hat_spine.vtp'.
+[2023-06-12 16:42:47.178] [warning] Couldn't find file 'hat_jaw.vtp'.
+[2023-06-12 16:42:47.178] [warning] Couldn't find file 'hat_skull.vtp'.
+[2023-06-12 16:42:47.178] [warning] Couldn't find file 'hat_ribs.vtp'.
+[2023-06-12 16:43:42.569] [info] Storage: read data file = C:\Users\Balu\Nextcloud\Documents\MA\Code\Kira_MSc_data\P02\post\output automization\FINAL_PERSONALISEDTORSIONS_scaled_final\dynamic07\Output\IK\IK.mot (nr=623 nc=24)
+[2023-06-12 16:43:42.751] [info] Loaded model P02_scaled from file C:\Users\Balu\Nextcloud\Documents\MA\Code\Kira_MSc_data\P02\post\Model\FINAL_PERSONALISEDTORSIONS_scaled_final.osim
+[2023-06-12 16:43:42.752] [warning] Couldn't find file 'treadmill.vtp'.
+[2023-06-12 16:43:42.753] [warning] Couldn't find file 'sacrum.vtp'.
+[2023-06-12 16:43:42.753] [warning] Couldn't find file 'pelvis.vtp'.
+[2023-06-12 16:43:42.754] [warning] Couldn't find file 'l_pelvis.vtp'.
+[2023-06-12 16:43:42.755] [warning] Couldn't find file 'fibula.vtp'.
+[2023-06-12 16:43:42.756] [warning] Couldn't find file 'fibula_l.vtp'.
+[2023-06-12 16:43:42.758] [warning] Couldn't find file 'hat_spine.vtp'.
+[2023-06-12 16:43:42.758] [warning] Couldn't find file 'hat_jaw.vtp'.
+[2023-06-12 16:43:42.758] [warning] Couldn't find file 'hat_skull.vtp'.
+[2023-06-12 16:43:42.759] [warning] Couldn't find file 'hat_ribs.vtp'.
