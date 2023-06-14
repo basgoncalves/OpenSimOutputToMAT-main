@@ -61,9 +61,9 @@ if run_stats
 
     Results = calculatePeaks(Results);
 
-    plotMuscleForces(Results,'Normalised_BW',1)
+%     plotMuscleForces(Results,'Normalised_BW',1)
 
-%     plotContactForces(Results, 1)
+    plotContactForces(Results, 1)
 
 %     plotIK(Results,'Absolute', 1)
 
@@ -778,6 +778,7 @@ muscle_groups = {'glut_max'; 'glut_med'; 'glut_min';'adductors'; 'hamstrings'; '
 n_subplots = length(muscle_groups);
 [ha, ~,FirstCol,LastRow,~] = tight_subplot(n_subplots,0,[0.008 0.01],[0.05 0.02],[0.08 0.01],0.99);
 
+mean_differences = struct;
 % loop through all muscles
 for iMusc = 1:length(muscle_groups)
 %     for iMusc = 1:length(muscle_names_unique)
@@ -791,7 +792,7 @@ for iMusc = 1:length(muscle_groups)
         for iLeg = 1:2
             leg = legs{iLeg};
 
-muscle_names = cellfun(@(str) [str(1:end-1) leg(1)], muscle_names, 'UniformOutput', false);
+            muscle_names = cellfun(@(str) [str(1:end-1) leg(1)], muscle_names, 'UniformOutput', false);
 
             % select either absolute or normalised
             switch Type
@@ -804,12 +805,12 @@ muscle_names = cellfun(@(str) [str(1:end-1) leg(1)], muscle_names, 'UniformOutpu
             end
 
             current_muscle = [muscle_groups{iMusc} '_' leg(1)];
-%             current_muscle = [current_muscle '_' leg(1)];
+            %             current_muscle = [current_muscle '_' leg(1)];
 
             % get all muscle segments for each muscle name
-%             segments = muscle_names(contains(muscle_names,current_muscle));
-%             single_muscle_forces = muscle_forces.(segments{1});
-single_muscle_forces = muscle_forces.(current_muscle);
+            %             segments = muscle_names(contains(muscle_names,current_muscle));
+            %             single_muscle_forces = muscle_forces.(segments{1});
+            single_muscle_forces = muscle_forces.(current_muscle);
 
             % if a column has all zeros make it all NaN
             single_muscle_forces = ZeroToNaN(single_muscle_forces);
@@ -837,16 +838,16 @@ single_muscle_forces = muscle_forces.(current_muscle);
 %             plot(single_muscle_forces)
 %             title([session ': ' current_muscle ' ' segments{1} leg],'Interpreter', 'None')
 
-
         end
 
         % calculate mean and SD for each group
         MeanForcesAllSessions(:,iSess) = nanmean(indData{iSess},2);
         SDForcesAllSessions(:,iSess) = nanstd(indData{iSess},0,2);
     end
+    
     % run and save SPM plots
     group_types = [1,1,2];
-    [SPM] = ttest_spm(indData,group_types, Bonf_corr);
+    [SPM] = ttest_spm(indData,group_types);
     suptitle([current_muscle])
 
     savedir = [get_main_dir() fp 'SPM_results'];
@@ -859,10 +860,23 @@ single_muscle_forces = muscle_forces.(current_muscle);
     p = plotShadedSD(MeanForcesAllSessions,SDForcesAllSessions,line_colors);
 
     % change ylim and yticks
-%     ylim([0 180])
-xlim([0 101])
-    
+    %     ylim([0 180])
+    xlim([0 101])
+
     r = add_spm_to_plot(SPM,140);
+
+    short_muscle = current_muscle(1:end-2);
+    mean_differences.(short_muscle) = {};
+    differences_loc.(short_muscle) = {};
+    comparisons = fields(SPM);
+    nComparisons = length(comparisons);
+    for iComp = 1:nComparisons
+        current_comp = comparisons{iComp};
+        mean_differences.(short_muscle){iComp,1} = current_comp;
+        mean_differences.(short_muscle){iComp,2} = SPM.(current_comp).MeanDifference;
+                differences_loc.(short_muscle){iComp,1} = current_comp;
+        differences_loc.(short_muscle){iComp,2} = SPM.(current_comp).sig_idx;
+    end
 
     % add ylable to first col
     if any(iMusc == FirstCol)
@@ -898,6 +912,8 @@ makeMyFigureNice
 
 % save figure
 saveas(gcf, [savedir fp 'muscle_forces_BW' leg '.jpeg'])
+save('mean_differences_m.mat', 'mean_differences')
+save('differences_loc_m.mat', 'differences_loc')
 
 
 % --------------------------------------------------------------------------------------------------------------- %
@@ -984,7 +1000,7 @@ for iJRL = 1:length(JRL_names)
 
     % run and save SPM plots
     group_types = [1,1,2];
-    [SPM] = ttest_spm(indData,group_types, Bonf_corr);
+    [SPM] = ttest_spm(indData,group_types);
     suptitle([current_JRL_variable_title])
 
     savedir = [get_main_dir() fp 'SPM_results' fp 'JRL'];
@@ -1000,6 +1016,19 @@ for iJRL = 1:length(JRL_names)
 %     ylim([0 6])
     
     r = add_spm_to_plot(SPM,[],8.5);
+
+% short_muscle = current_muscle(1:end-2);
+    mean_differences.(JRL_names{iJRL}) = {};
+    differences_loc.(JRL_names{iJRL}) = {};
+    comparisons = fields(SPM);
+    nComparisons = length(comparisons);
+    for iComp = 1:nComparisons
+        current_comp = comparisons{iComp};
+        mean_differences.(JRL_names{iJRL}){iComp,1} = current_comp;
+        mean_differences.(JRL_names{iJRL}){iComp,2} = SPM.(current_comp).MeanDifference;
+        differences_loc.(JRL_names{iJRL}){iComp} = SPM.(current_comp).sig_idx;
+    end
+
 
     % add ylable to first col
     if any(iJRL == FirstCol)
@@ -1028,6 +1057,8 @@ makeMyFigureNice
 
 % save figure
 saveas(gcf, [savedir fp 'JointReactionLoads.jpeg'])
+save('mean_differences_jrf.mat', 'mean_differences')
+save('differences_loc_jrf.mat', 'differences_loc')
 
 
 
@@ -1211,13 +1242,13 @@ end
 % --------------------------------------------------------------------------------------------------------------- %
 % ------------------------------------------- STATS FUNCTIONS --------------------------------------------------- %
 % --------------------------------------------------------------------------------------------------------------- %
-function [SPM] = ttest_spm(indData,group_types, Bonf_corr)
+function [SPM] = ttest_spm(indData,group_types)
 % type: 1 = independent / 2 = paired
 
 
 n_groups = length(indData);
 combinations = nchoosek([1:n_groups],2);
-Alpha = 0.05/Bonf_corr;%/size(combinations,1);
+Alpha = 0.05;%/size(combinations,1);
 
 ha = tight_subplot(1,n_groups,[],[],[],[0.05 0.3 0.9 0.5]);
 SPM = struct;
@@ -1238,7 +1269,7 @@ for iComb = combinations'
 
     spmi = spmi.inference(Alpha);
 
-    comparison_name = [num2str(iComb(1)) '_VS_' num2str(iComb(2))];
+    comparison_name = [num2str(iComb(1)) 'VS' num2str(iComb(2))];
 
     % SPM plot with p-values and t-values threshold
     axes(ha(count))
@@ -1248,15 +1279,22 @@ for iComb = combinations'
 
     % from the axis, find the index of the siginifant points and it's p-value
     LinesPlot = ha(count).Children;
-    significant_idx=[];
+    significant_idx={};
     p_value_idx=[];
+    MeanDifference ={};
     for iLine = 1:length(LinesPlot)
 
         %  find indexes of patches (signficand shaded areas)
         if contains(class(LinesPlot(iLine)),'Patch')
-            xData = LinesPlot(iLine).XData;
+            xData = unique(round(LinesPlot(iLine).XData));
             cols = [length(significant_idx)+1:length(significant_idx) + length(xData)];
-            significant_idx(1,cols) = xData; 
+            significant_idx{1,end+1} = xData'; 
+
+            % mean and CI for the area of each patch
+            [MD,lCI,uCI] = meanDif (Dataset1(xData,:),Dataset2(xData,:),Alpha,type,0); 
+            
+            % create a string type "MD (lCI-uCI)" with the correct decimal points
+            MeanDifference{1,end+1} = [determine_decimal_points(MD) ' (' determine_decimal_points(lCI) '-' determine_decimal_points(uCI) ')'];
         end
 
         %  find indexes of tesxt with 'P = '
@@ -1264,8 +1302,6 @@ for iComb = combinations'
             p_value_idx(end+1) = str2num(LinesPlot(iLine).String(4:end));
         end
     end
-
-    significant_idx = sort(significant_idx);
 
     % add spmi results to final struct
     SPM.(['comp_' comparison_name]) = struct;
@@ -1275,9 +1311,16 @@ for iComb = combinations'
         SPM.(['comp_' comparison_name]).(curr_fld) = spmi.(curr_fld);
     end
 
+    % flip variables because the first elements represent last patches on
+    % the figure 
+    p_value_idx = flip(p_value_idx);
+    significant_idx = flip(significant_idx);
+    MeanDifference = flip(MeanDifference);
+
     % add the significance vectors (idx and
     SPM.(['comp_' comparison_name]).sig_idx = significant_idx;
     SPM.(['comp_' comparison_name]).p_idx = p_value_idx;
+    SPM.(['comp_' comparison_name]).MeanDifference = MeanDifference;
 end
 tight_subplot_ticks(ha,0,0)
 
@@ -1308,30 +1351,23 @@ distance_between_rectanges = yPosition*0.05;
 for iComp = 1:nComp
 
     % get the x positions of significant differences for each comparisons
-    x = SPM.(comparisons{iComp}).sig_idx;
-    
-%     x = [1:50,60:85]; % use to test with random x values
-    
+    % indx_significant_differences = [1:50,60:85]; % test values
+    sections_significant_differences = SPM.(comparisons{iComp}).sig_idx;
+
     % Find the indices where consecutive values change & split the vector into sections
-    try
-        diff_indices = find(diff(x) ~= 1);  
-        sections = mat2cell(x, 1, diff([0, diff_indices, numel(x)]));
-    catch
-        x = NaN(1,101);
-         diff_indices = find(diff(x) ~= 1);  
+    if isempty(sections_significant_differences)
         disp('no sig dif found')
-        sections = mat2cell(x, 1, diff([0, diff_indices, numel(x)]));
+        continue
     end
-    
-    
+
     % plot each section the sections
-    for i = 1:numel(sections)
-        x = sections{i};
+    for i = 1:numel(sections_significant_differences)
+        indx_significant_differences = sections_significant_differences{i};
 
         % Define the position and size of the rectangle
-        x_rect = x(1);
+        x_rect = indx_significant_differences(1);
         y_rect = yPosition-distance_between_rectanges*iComp;
-        width = length(x);
+        width = length(indx_significant_differences);
         height = distance_between_rectanges/2;
 
         % Draw the rectangle
@@ -1342,10 +1378,9 @@ for iComp = 1:nComp
     end
 
     % Draw fake rectangle for the legend entry
-            hold on
-            rectangle_plot = plot(NaN, NaN, 's', 'MarkerFaceColor', colors_rect(iComp,:), 'MarkerEdgeColor', 'none');
+    hold on
+    rectangle_plot = plot(NaN, NaN, 's', 'MarkerFaceColor', colors_rect(iComp,:), 'MarkerEdgeColor', 'none');
 end
-
 % --------------------------------------------------------------------------------------------------------------- %
 function x_new = insertDecimalPoints(x,N_decimals)
 x_new = [];
@@ -1681,79 +1716,6 @@ for iSess = 1:length(S.sessions)
 end
 
 
-% ----------------------------------------------------------------------------%
-
-function [XpositionSignificant,AxesSPM,CompareLabels,Pval,MD,lCI,uCI]= TtestSPM(ApplyBonfCorrection)
-
-fp = filesep;
-load('exampleData_ttestSPM.mat')
-
-% combinations of all the Groups comparisons possible
-comb = nchoosek([1:length(GroupNames)],2); 
-Alpha = 0.05;
-if ApplyBonfCorrection
-    Alpha = Alpha/size(comb,1);
-end
-
-% deleteNaNs
-for i=1:length(GroupNames);check=any(isnan(indData{i}));indData{i}(:,check)=[];end
-
-X ={};CompareLabels={}; MD =[]; lCI =[]; uCI =[]; Pval=[];
-AxesSPM = tight_subplotBG(size(comb,1),0);
-for c = 1:size(comb,1)
-    
-    Dataset1 = indData{comb(c,1)}; 
-    Dataset2 = indData{comb(c,2)};
-    spmi   = spm1d.stats.ttest2(Dataset1',Dataset2');
-    spmi  = spmi.inference(Alpha);
-    axes(AxesSPM(c))
-
-    % SPM plot with p-values and t-values threshold
-    spmi.plot; spmi.plot_p_values; spmi.plot_threshold_label;  
-    
-    CompareLabels{c}=[GroupNames{comb(c,1)} ' - ' GroupNames{comb(c,2)} ' (p< ' num2str(Alpha) ')'];
-    title(['comb' num2str(c) ' = ' CompareLabels{c}])
-    
-   % L = Fig{c}.Children(1).Children; ShadeIdx=[]; PValueIdx=[];
-    L = AxesSPM(c).Children; ShadeIdx=[]; PValueIdx=[];
-    for kk = 1:  length(L)             
-
-        %  find indexes of patches (signficand shaded areas)   
-        if contains(class(L(kk)),'Patch'); ShadeIdx(end+1) = kk; end      
-
-        %  find indexes of tesxt with 'P = ' 
-        if contains(class(L(kk)),'Text') && contains(L(kk).String,'p '); PValueIdx(end+1) = kk; end      
-    end
-    
-    % mean and CI across whole curve
-    [MD(c,1),lCI(c,1),uCI(c,1)] = meanDif_arrary (Dataset1,Dataset2, Alpha,2,0); 
-    X{c,1} = {};
-    Pval(c,1) = spmi.p_set;
-
-    %  loop through all significant areas and
-    for kk = 1:length(ShadeIdx)             
-        S = ShadeIdx(kk);
-        P = PValueIdx(kk);
-        Xvalues = round([L(S).XData],0);
-        Xvalues(Xvalues==0)=[];
-        col = kk+1;
-        X{c,col} = Xvalues;
-
-        % mean and CI for the area of each patch
-        [MD(c,col),lCI(c,col),uCI(c,col)] = meanDif_arrary (Dataset1(Xvalues,:),Dataset2(Xvalues,:),Alpha,2,0); 
-
-        % remove text and conver p-value to number
-        try
-            Pval(c,col) = str2num(strrep(L(P).String,'p = ',''));   
-        catch 
-            Pval(c,col) = str2num(strrep(L(P).String,'p < ','')); 
-        end
-    end
-end
-
-XpositionSignificant = X;
-
-
 % ---------------------------------------------------------------------- %
 % -------------------------------------------------------------------------%
 function Results_BW = create_muscle_groups(Results_BW)
@@ -1800,8 +1762,19 @@ function [MD,LB,UB] = meanDif (D1,D2, Alpha,Type,ConvertToPercentage)
 %Type: 1(default) = paired; 2 = independent;
 % ConvertToPercentage: 1(default) = true; 0 = false;
 if ~exist('Alpha')||isempty(Alpha);  Alpha = 0.05; end
-if ~exist('Type')||isempty(Type);  Type = 1; end
-if ~exist('ConvertToPercentage')||isempty(ConvertToPercentage);  ConvertToPercentage = 1; end
+
+if ~exist('Type')||isempty(Type)
+    Type = 1; 
+elseif contains(Type,'2-sample') || contains(Type,'independent')
+    Type = 2;
+
+elseif contains(Type,'1-sample') || contains(Type,'paired')
+    Type = 1;
+end
+
+if ~exist('ConvertToPercentage')||isempty(ConvertToPercentage)
+    ConvertToPercentage = 1; 
+end
 
 mean1 = mean(D1,1);
 mean2 = mean(D2,1);
@@ -1840,6 +1813,25 @@ elseif Type == 2      % https://sphweb.bumc.bu.edu/otlt/mph-modules/bs/bs704_con
     UB = MD+CIdiff;
     
 end
+
+% -------------------------------------------------------------------%
+
+function [formattedValue,decimalPoints] = determine_decimal_points(value)
+
+if nargin < 1
+    value = 34;
+end
+
+magnitude = abs(value);
+if magnitude >= 1000
+    decimalPoints = 0;  % No decimal points for large values
+elseif magnitude >= 10
+    decimalPoints = 1;  % One decimal point for medium values
+else
+    decimalPoints = 2;  % Two decimal points for small values
+end
+
+formattedValue = sprintf(['%.' num2str(decimalPoints) 'f'], value);
 
 
 

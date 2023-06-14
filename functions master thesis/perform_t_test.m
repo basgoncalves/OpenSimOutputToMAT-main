@@ -12,8 +12,10 @@ legs = {'left'; 'right'};
 sessions = {'session1'; 'session2'; 'session3'};
 joints = {'HCF'; 'KCF'; 'ACF'};
 muscle_groups = {'glut_max'; 'glut_med'; 'glut_min';'adductors'; 'hamstrings'; 'iliopsoas'; 'tfl'; 'ext_rot'; 'rect_fem'};
+muscles_r = append(muscle_groups,'_r');
+muscles_l = append(muscle_groups,'_l');
 
-% data_pre = struct;
+data = struct;
 % data_post = struct;
 % data_TD = struct;
 
@@ -30,6 +32,13 @@ for i = 1:size(joints,1)
     data_pre = [Results_BW.JRL.(sessions{1}).(legs{1}).(['peak_' joints{i} '_val'])(1,:), Results_BW.JRL.(sessions{1}).(legs{2}).(['peak_' joints{i} '_val'])(1,:)];
     data_post = [Results_BW.JRL.(sessions{2}).(legs{1}).(['peak_' joints{i} '_val'])(1,:), Results_BW.JRL.(sessions{2}).(legs{2}).(['peak_' joints{i} '_val'])(1,:)];
     data_TD = [Results_BW.JRL.(sessions{3}).(legs{1}).(['peak_' joints{i} '_val'])(1,:), Results_BW.JRL.(sessions{3}).(legs{2}).(['peak_' joints{i} '_val'])(1,:)];
+data.(joints{i}).mean(1) = mean(data_pre);
+data.(joints{i}).mean(2) = mean(data_post);
+data.(joints{i}).mean(3) = mean(data_TD);
+data.(joints{i}).SD(1) = std(data_pre);
+data.(joints{i}).SD(2) = std(data_post);
+data.(joints{i}).SD(3) = std(data_TD);
+
 
 % paired: data_pre vs data_post
 diff_pre_post = data_pre - data_post; % neg if values higher post surg; positive when values are lower post surg
@@ -46,6 +55,13 @@ for i = 1:size(muscles_l,1)
     data_post = [Results_BW.SO.(sessions{2}).(legs{1}).(['peak_' muscles_l{i} '_val'])(1,:), Results_BW.SO.(sessions{2}).(legs{2}).(['peak_' muscles_r{i} '_val'])(1,:)];
     data_TD = [Results_BW.SO.(sessions{3}).(legs{1}).(['peak_' muscles_l{i} '_val'])(1,:), Results_BW.SO.(sessions{3}).(legs{2}).(['peak_' muscles_r{i} '_val'])(1,:)];
 
+    data.(muscle_groups{i}).mean(1) = mean(data_pre);
+    data.(muscle_groups{i}).mean(2) = mean(data_post);
+    data.(muscle_groups{i}).mean(3) = mean(data_TD);
+    data.(muscle_groups{i}).SD(1) = std(data_pre);
+    data.(muscle_groups{i}).SD(2) = std(data_post);
+    data.(muscle_groups{i}).SD(3) = std(data_TD);
+
 % paired: data_pre vs data_post
 diff_pre_post = data_pre - data_post; % neg if values higher post surg; positive when values are lower post surg
 [m.paired_t.h(i),m.paired_t.p(i),m.paired_t.ci(i,:),m.paired_t.stats(i)] = ttest(diff_pre_post,0,alpha_m,'both');
@@ -54,6 +70,11 @@ diff_pre_post = data_pre - data_post; % neg if values higher post surg; positive
 [m.two_t_pre.h(i),m.two_t_pre.p(i),m.two_t_pre.ci(i,:),m.two_t_pre.stats(i)] = ttest2(data_TD, data_pre,alpha_m); % '2' because two sample t-test
 [m.two_t_post.h(i),m.two_t_post.p(i),m.two_t_post.ci(i,:),m.two_t_post.stats(i)] = ttest2(data_TD, data_post,alpha_m); % '2' because two sample t-test
 end
+
+save('data_t_test_peaks.mat', 'data')
+save('results_t_test_muscles.mat', 'm')
+save('results_t_test_jcf.mat', 'jcf')
+
 disp('')
 
 % -------------------- FUNCTIONS --------------------------------------%
