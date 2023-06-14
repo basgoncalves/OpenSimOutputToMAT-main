@@ -859,14 +859,13 @@ single_muscle_forces = muscle_forces.(current_muscle);
     p = plotShadedSD(MeanForcesAllSessions,SDForcesAllSessions,line_colors);
 
     % change ylim and yticks
-%     ylim([0 180])
-xlim([0 101])
+    ylim([0 140])
     
     r = add_spm_to_plot(SPM,140);
 
     % add ylable to first col
     if any(iMusc == FirstCol)
-        yl = ylabel('muscle forces [N/BW]');
+        yl = ylabel('% Max isom force');
         yl.Rotation = 0;
         yl.HorizontalAlignment ="right";
     end
@@ -874,8 +873,6 @@ xlim([0 101])
     % title
     t = title(current_muscle(1:end-2), 'Interpreter','none');
     t.VerticalAlignment = 'top';
-    t.FontName = 'Arial';
-    t.FontSize = 10;
 end
 
 % add ticks to the plots
@@ -886,18 +883,18 @@ else
 end
 
 % add overall title for the figure
-% suptitle(['muscle forces ' Type])
+suptitle(['muscle forces ' Type])
 
 % add legend
 lg = legend({'pre' 'sd' 'post' '' 'td' '' 'pre vs post' 'pre vs TD' 'post vs TD'});
-lg.FontSize = 10;
-lg.Location = 'best';
+lg.FontSize = 12;
+lg.Position = [0.8 0.12 0.05 0.1];
 
 % make figure nice (backgorund color, font size and type, etc...)
 makeMyFigureNice
 
 % save figure
-saveas(gcf, [savedir fp 'muscle_forces_BW' leg '.jpeg'])
+saveas(gcf, [savedir fp 'muscle_forces' leg '.jpeg'])
 
 
 % --------------------------------------------------------------------------------------------------------------- %

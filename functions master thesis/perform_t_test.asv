@@ -39,12 +39,12 @@ diff_pre_post = data_pre - data_post; % neg if values higher post surg; positive
 [jcf.two_t_pre.h(i),jcf.two_t_pre.p(i),jcf.two_t_pre.ci(i,:),jcf.two_t_pre.stats(i)] = ttest2(data_TD, data_pre,alpha_jcf); % '2' because two sample t-test
 [jcf.two_t_post.h(i),jcf.two_t_post.p(i),jcf.two_t_post.ci(i,:),jcf.two_t_post.stats(i)] = ttest2(data_TD, data_post,alpha_jcf); % '2' because two sample t-test
 end
-clear data_pre data_post data_TD
+
 %% muscle forces
 for i = 1:size(muscles_l,1)
-    data_pre = [Results_BW.SO.(sessions{1}).(legs{1}).(['peak_' muscles_l{i} '_val'])(1,:), Results_BW.SO.(sessions{1}).(legs{2}).(['peak_' muscles_r{i} '_val'])(1,:)];
-    data_post = [Results_BW.SO.(sessions{2}).(legs{1}).(['peak_' muscles_l{i} '_val'])(1,:), Results_BW.SO.(sessions{2}).(legs{2}).(['peak_' muscles_r{i} '_val'])(1,:)];
-    data_TD = [Results_BW.SO.(sessions{3}).(legs{1}).(['peak_' muscles_l{i} '_val'])(1,:), Results_BW.SO.(sessions{3}).(legs{2}).(['peak_' muscles_r{i} '_val'])(1,:)];
+    data_pre = [Results_BW.SO.(sessions{1}).(legs{1}).(['peak_' muscles_l{i} '_val')(1,:), Results_BW.SO.(sessions{1}).(legs{2}).(['peak_' muscles_r{i})(1,:)];
+    data_post = [Results_BW.SO.(sessions{2}).(legs{1}).(['peak_' muscles_l{i})(1,:), Results_BW.SO.(sessions{2}).(legs{2}).(['peak_' muscles_r{i})(1,:)];
+    data_TD = [Results_BW.SO.(sessions{3}).(legs{1}).(['peak_' muscles_l{i})(1,:), Results_BW.SO.(sessions{3}).(legs{2}).(['peak_' muscles_r{i})(1,:)];
 
 % paired: data_pre vs data_post
 diff_pre_post = data_pre - data_post; % neg if values higher post surg; positive when values are lower post surg

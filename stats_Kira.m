@@ -9,9 +9,9 @@ gather_data_in_struct = false;
 
 run_stats =                 true;
 plot_JRF_curve_and_peaks =  false;
-scatter_peaks_angles =      false; plot_muscles = true; two_peaks = false;
+scatter_peaks_angles =      false; plot_muscles = false; two_peaks = false;
 plot_corr =                 false;
-multiple_regress =          true; lin = true;
+multiple_regress =          false; lin = true;
 plot_SPM =                  false;
 clrs = 'parula';
 
@@ -349,8 +349,8 @@ seg = {'';'_fx'; '_fy'; '_fz'};
         X(:,end+1) = X(:,end)-X(:,end-1);
 
 % y_HCF = [Results_BW.JRL.session1.(legs{1}).(['peak_' joints{1} '_val'])(1,:), Results_BW.JRL.session1.(legs{2}).(['peak_' joints{1} '_val'])(1,:), Results_BW.JRL.session2.(legs{1}).(['peak_' joints{1} '_val'])(1,:), Results_BW.JRL.session2.(legs{2}).(['peak_' joints{1} '_val'])(1,:), Results_BW.JRL.session3.(legs{1}).(['peak_' joints{1} '_val'])(1,:), Results_BW.JRL.session3.(legs{2}).(['peak_' joints{1} '_val'])(1,:)]';
-y_KCF = [Results_BW.JRL.session1.(legs{1}).(['peak_' joints{2} '_val'])(1,:), Results_BW.JRL.session1.(legs{1}).(['peak_' joints{2} '_val'])(1,:), Results_BW.JRL.session2.(legs{1}).(['peak_' joints{2} '_val'])(1,:), Results_BW.JRL.session2.(legs{2}).(['peak_' joints{2} '_val'])(1,:), Results_BW.JRL.session3.(legs{1}).(['peak_' joints{2} '_val'])(1,:), Results_BW.JRL.session3.(legs{2}).(['peak_' joints{2} '_val'])(1,:)]';
-y_glut_min = [Results_BW.JRL.session1.(legs{1}).(['peak_'  '_val'])(1,:), Results_BW.JRL.session1.(legs{2}).(['peak_' joints{1} '_val'])(1,:), Results_BW.JRL.session2.(legs{1}).(['peak_' joints{1} '_val'])(1,:), Results_BW.JRL.session2.(legs{2}).(['peak_' joints{1} '_val'])(1,:), Results_BW.JRL.session3.(legs{1}).(['peak_' joints{1} '_val'])(1,:), Results_BW.JRL.session3.(legs{2}).(['peak_' joints{1} '_val'])(1,:)]';
+y_KCF = [Results_BW.JRL.session1.(legs{1}).(['peak_' joints{2} '_val'])(1,:), Results_BW.JRL.session1.(legs{2}).(['peak_' joints{2} '_val'])(1,:), Results_BW.JRL.session2.(legs{1}).(['peak_' joints{2} '_val'])(1,:), Results_BW.JRL.session2.(legs{2}).(['peak_' joints{2} '_val'])(1,:), Results_BW.JRL.session3.(legs{1}).(['peak_' joints{2} '_val'])(1,:), Results_BW.JRL.session3.(legs{2}).(['peak_' joints{2} '_val'])(1,:)]';
+% y_glut_min = [Results_BW.JRL.session1.(legs{1}).(['peak_'  '_val'])(1,:), Results_BW.JRL.session1.(legs{2}).(['peak_' joints{1} '_val'])(1,:), Results_BW.JRL.session2.(legs{1}).(['peak_' joints{1} '_val'])(1,:), Results_BW.JRL.session2.(legs{2}).(['peak_' joints{1} '_val'])(1,:), Results_BW.JRL.session3.(legs{1}).(['peak_' joints{1} '_val'])(1,:), Results_BW.JRL.session3.(legs{2}).(['peak_' joints{1} '_val'])(1,:)]';
 
 %             if lin
 %                 [b_HCF,bint_HCF,r_HCF,rint_HCF,stats_HCF] = regress(y_HCF,X); % stats =  R2 statistic, F-statistic and its p-value, estimate of the error variance
