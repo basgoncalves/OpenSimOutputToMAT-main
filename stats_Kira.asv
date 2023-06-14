@@ -1000,6 +1000,7 @@ makeMyFigureNice
 % save figure
 saveas(gcf, [savedir fp 'JointReactionLoads.jpeg'])
 
+
 % --------------------------------------------------------------------------------------------------------------- %
 function p = plotShadedSD(YData,SD,COLOR,Xvalues)
 % plot each column on the Mean matrix with each column on the SD matrix
@@ -1172,6 +1173,7 @@ for i = 1:N
 end
 
 
+
 % --------------------------------------------------------------------------------------------------------------- %
 % ------------------------------------------- STATS FUNCTIONS --------------------------------------------------- %
 % --------------------------------------------------------------------------------------------------------------- %
@@ -1227,7 +1229,7 @@ for iComb = combinations'
             [MD,lCI,uCI] = meanDif (Dataset1(xData,:),Dataset2(xData,:),Alpha,type,0); 
             
             % create a string type "MD (lCI-uCI)" with the correct decimal points
-            MeanDifference{1,end+1} = [determine_decimal_points(MD) ' (' determine_decimal_points(lCI) '-' determine_decimal_points(uCI) ')'];
+            MeanDifference{1,end+1} = [deternine_decimal_points(MD) ' (' deternine_decimal_points(lCI) '-' deternine_decimal_points(uCI) ')'];
         end
 
         %  find indexes of tesxt with 'P = '
@@ -1244,12 +1246,6 @@ for iComb = combinations'
         SPM.(['comp_' comparison_name]).(curr_fld) = spmi.(curr_fld);
     end
 
-    % flip variables because the first elements represent last patches on
-    % the figure 
-    p_value_idx = flip(p_value_idx);
-    significant_idx = flip(significant_idx);
-    MeanDifference = flip(MeanDifference);
-
     % add the significance vectors (idx and
     SPM.(['comp_' comparison_name]).sig_idx = significant_idx;
     SPM.(['comp_' comparison_name]).p_idx = p_value_idx;
@@ -1258,20 +1254,19 @@ end
 tight_subplot_ticks(ha,0,0)
 
 % --------------------------------------------------------------------------------------------------------------- %
-function r = add_spm_to_plot(SPM,colors,yPosition)
-r = [];
+function add_spm_to_plot(SPM,colors,yPosition)
+
 comparisons = fields(SPM);
 nComp = length(comparisons);
 
-% if no colors ddre selected
+% if no colors are selected
 if nargin < 2 || isempty(colors)
-    colors = getColor('parula',nComp);
+    colors = getColor('viridis',nComp);
 elseif length(colors) ~= length(comparisons)
     warning on
     warning('number of olors and number of comparions do not match. Auto colors ')
-    colors = getColor('parula',nComp);
+    colors = getColor('viridis',nComp);
 end
-colors_rect = getColor('gray',3);
 
 % y coordinates of the sig rectangle
 if nargin < 3
@@ -1279,40 +1274,37 @@ if nargin < 3
     ylim([min(ylim) ceil(yPosition)])
 end
 
-distance_between_rectanges = yPosition*0.05;
+distance_between_rectanges = range(ylim)*0.05;
 
 for iComp = 1:nComp
 
     % get the x positions of significant differences for each comparisons
-    % indx_significant_differences = [1:50,60:85]; % test values
-    sections_significant_differences = SPM.(comparisons{iComp}).sig_idx;
+    x = SPM.(comparisons{iComp}).sig_idx;
+    
+%     x = [1:50,60:85]; % use to test with random x values
 
     % Find the indices where consecutive values change & split the vector into sections
-    if isempty(sections_significant_differences)
+    try
+        diff_indices = find(diff(x) ~= 1);
+        sections = mat2cell(x, 1, diff([0, diff_indices, numel(x)]));
+    catch
         disp('no sig dif found')
-        continue
+        continue 
     end
 
     % plot each section the sections
-    for i = 1:numel(sections_significant_differences)
-        indx_significant_differences = sections_significant_differences{i};
+    for i = 1:numel(sections)
+        x = sections{i};
 
         % Define the position and size of the rectangle
-        x_rect = indx_significant_differences(1);
+        x_rect = x(1);
         y_rect = yPosition-distance_between_rectanges*iComp;
-        width = length(indx_significant_differences);
+        width = length(x);
         height = distance_between_rectanges/2;
 
         % Draw the rectangle
-        if ~isnan(x_rect)
-            r = rectangle('Position', [x_rect, y_rect, width, height], 'FaceColor', colors_rect(iComp,:), 'EdgeColor','none');
-        end
-
+        rectangle('Position', [x_rect, y_rect, width, height], 'FaceColor', colors(iComp,:), 'EdgeColor','none')
     end
-
-    % Draw fake rectangle for the legend entry
-    hold on
-    rectangle_plot = plot(NaN, NaN, 's', 'MarkerFaceColor', colors_rect(iComp,:), 'MarkerEdgeColor', 'none');
 end
 
 % --------------------------------------------------------------------------------------------------------------- %
@@ -1326,8 +1318,6 @@ for i = 1:length(x)-1
     x_new = [x_new, x(i), linspace(x(i)+0.00001, x(i+1)-0.00001, N_decimals)];
 end
 x_new = [x_new, x(end)];
-
-
 
 
 
