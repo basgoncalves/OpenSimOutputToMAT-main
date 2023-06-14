@@ -9,7 +9,7 @@ gather_data_in_struct = false;
 
 run_stats =                 true;
 plot_JRF_curve_and_peaks =  false;
-scatter_peaks_angles =      true; plot_muscles = false; two_peaks = false;
+scatter_peaks_angles =      true; plot_muscles = true; two_peaks = false;
 plot_corr =                 false;
 multiple_regress =          false; lin = true;
 plot_SPM =                  false;
@@ -55,7 +55,7 @@ if run_stats
     legs = {'left'; 'right'};
     sessions = {'session1'; 'session2'; 'session3'};
     joints = {'HCF'; 'KCF'; 'ACF'};
-    muscle_groups = {'glut_max'; 'glut_med'; 'glut_min';'adductors'}
+    muscle_groups = {'glut_max'; 'glut_med'; 'glut_min';'adductors'; 'hamstrings'; 'iliopsoas'; 'tfl'; 'ext_rot'; 'rect_fem'};
     angles = {'NSA'; 'AVA'; 'TT'};
     lgnd = {'P01','P02', 'P03', 'P04', 'P05';'P01','P02', 'P03', 'P04', 'P05';'TD02', 'TD03', 'TD04','',''};
 
@@ -70,6 +70,7 @@ if run_stats
     %             Results.SO.session3.(legs{k}).(add_nan{i})(:,1) = NaN;
     %         end
     %     end
+    Results = create_muscle_groups(Results); % add muscle groups
 
     Results = calculate_peaks(Results);
 
@@ -101,7 +102,7 @@ if run_stats
         end
     end
 
-    Results_BW = create_muscle_groups(Results_BW); % add muscle groups
+    save('Results_BW.mat', 'Results_BW')
 
     % plot JRF by session incl. peaks
     if plot_JRF_curve_and_peaks
@@ -148,35 +149,35 @@ if run_stats
         end
 
         angles = [angles; 'leg_torsion'];
+% 
+%         muscles = fields(Results_BW.SO.(sessions{1}).(legs{1}));
+%         muscles = muscles(contains(muscles,'val'));
+%         muscles = muscles(~contains(muscles,{'time', 'duration', 'reserve', 'FX', 'FY', 'FZ', 'MX', 'MY', 'MZ','extobl', 'intobl','ercspn'}));
 
-        muscles = fields(Results_BW.SO.(sessions{1}).(legs{1}));
-        muscles = muscles(contains(muscles,'val'));
-        muscles = muscles(~contains(muscles,{'time', 'duration', 'reserve', 'FX', 'FY', 'FZ', 'MX', 'MY', 'MZ','extobl', 'intobl','ercspn'}));
+%         for i = 1:size(muscles,1)
+%             if contains(muscles{i},'1')
+%                 for j = 1:size(sessions,1)
+%                     % left leg
+%                     m_1 = Results_BW.SO.(sessions{j}).(legs{1}).(muscles{i});
+%                     m_2 = Results_BW.SO.(sessions{j}).(legs{1}).(strrep(muscles{i},'1','2'));
+%                     m_3 = Results_BW.SO.(sessions{j}).(legs{1}).(strrep(muscles{i},'1','3'));
+%                     m_res = sqrt(m_1.^2 + m_2.^2 + m_3.^2);
+%                     Results_BW.SO.(sessions{j}).(legs{1}).(strrep(muscles{i},'1','')) = m_res;
+%                     clear m_1 m_2 m_3 m_res
+%                     % right leg
+%                     m_1 = Results_BW.SO.(sessions{j}).(legs{2}).(muscles{i});
+%                     m_2 = Results_BW.SO.(sessions{j}).(legs{2}).(strrep(muscles{i},'1','2'));
+%                     m_3 = Results_BW.SO.(sessions{j}).(legs{2}).(strrep(muscles{i},'1','3'));
+%                     m_res = sqrt(m_1.^2 + m_2.^2 + m_3.^2);
+%                     Results_BW.SO.(sessions{j}).(legs{2}).(strrep(muscles{i},'1','')) = m_res;
+%                 end
+%             end
+%         end
 
-        for i = 1:size(muscles,1)
-            if contains(muscles{i},'1')
-                for j = 1:size(sessions,1)
-                    % left leg
-                    m_1 = Results_BW.SO.(sessions{j}).(legs{1}).(muscles{i});
-                    m_2 = Results_BW.SO.(sessions{j}).(legs{1}).(strrep(muscles{i},'1','2'));
-                    m_3 = Results_BW.SO.(sessions{j}).(legs{1}).(strrep(muscles{i},'1','3'));
-                    m_res = sqrt(m_1.^2 + m_2.^2 + m_3.^2);
-                    Results_BW.SO.(sessions{j}).(legs{1}).(strrep(muscles{i},'1','')) = m_res;
-                    clear m_1 m_2 m_3 m_res
-                    % right leg
-                    m_1 = Results_BW.SO.(sessions{j}).(legs{2}).(muscles{i});
-                    m_2 = Results_BW.SO.(sessions{j}).(legs{2}).(strrep(muscles{i},'1','2'));
-                    m_3 = Results_BW.SO.(sessions{j}).(legs{2}).(strrep(muscles{i},'1','3'));
-                    m_res = sqrt(m_1.^2 + m_2.^2 + m_3.^2);
-                    Results_BW.SO.(sessions{j}).(legs{2}).(strrep(muscles{i},'1','')) = m_res;
-                end
-            end
-        end
-
-        muscles = muscles(~contains(muscles,{'1','2','3'}));
+%         muscles = muscles(~contains(muscles,{'1','2','3'}));
         % muscles = muscles(contains(muscles,{'val'}));
-        muscles_r = muscles(contains(muscles,'_r_'));
-        muscles_l = muscles(contains(muscles,'_l_'));
+        muscles_r = append(muscle_groups, '_r');
+        muscles_l = append(muscle_groups, '_l');
 
 dot_colors = getColor(clrs,3);
 seg = {'';'_fx'; '_fy'; '_fz'};
@@ -189,11 +190,13 @@ seg = {'';'_fx'; '_fy'; '_fz'};
                 for j=1:size(muscles_r,1)
 
                         axes(ax(count)); hold on; grid on;
+                        title(muscle_groups{j},'Interpreter', 'None')
+%                         ylim([0 2])
 
                         %                             plot(Results_BW.JRL.(sessions{iDOF}).(legs{j}).(joints{k})); hold on;
-                        scatter(bone_geom.(angles{k}) (1:10), [Results_BW.SO.session1.(legs{1}).(muscles_l{j})(1,:), Results_BW.SO.session1.(legs{2}).(muscles_r{j})(1,:)],36,dot_colors(1,:),'filled')
-                        scatter(bone_geom.(angles{k}) (11:20), [Results_BW.SO.session2.(legs{1}).(muscles_l{j})(1,:), Results_BW.SO.session2.(legs{2}).(muscles_r{j})(1,:)],36,dot_colors(2,:),'filled')
-                        scatter(bone_geom.(angles{k}) (21:end), [Results_BW.SO.session3.(legs{1}).(muscles_l{j})(1,:), Results_BW.SO.session3.(legs{2}).(muscles_r{j})(1,:)],36,dot_colors(end,:),'filled')
+                        scatter(bone_geom.(angles{k}) (1:10), [Results_BW.SO.session1.(legs{1}).(['peak_' muscles_l{j} '_val'])(1,:), Results_BW.SO.session1.(legs{2}).(muscles_r{j})(1,:)],36,dot_colors(1,:),'filled')
+                        scatter(bone_geom.(angles{k}) (11:20), [Results_BW.SO.session2.(legs{1}).(['peak_' muscles_l{j})(1,:), Results_BW.SO.session2.(legs{2}).(muscles_r{j})(1,:)],36,dot_colors(2,:),'filled')
+                        scatter(bone_geom.(angles{k}) (21:end), [Results_BW.SO.session3.(legs{1}).(['peak_' muscles_l{j})(1,:), Results_BW.SO.session3.(legs{2}).(muscles_r{j})(1,:)],36,dot_colors(end,:),'filled')
 
 
                         %                 title([sessions{iDOF} ' ' legs{j} ' ' joints{k}])
@@ -346,6 +349,9 @@ seg = {'';'_fx'; '_fy'; '_fz'};
         X(:,end+1) = X(:,end)-X(:,end-1);
 
 % y_HCF = [Results_BW.JRL.session1.(legs{1}).(['peak_' joints{1} '_val'])(1,:), Results_BW.JRL.session1.(legs{2}).(['peak_' joints{1} '_val'])(1,:), Results_BW.JRL.session2.(legs{1}).(['peak_' joints{1} '_val'])(1,:), Results_BW.JRL.session2.(legs{2}).(['peak_' joints{1} '_val'])(1,:), Results_BW.JRL.session3.(legs{1}).(['peak_' joints{1} '_val'])(1,:), Results_BW.JRL.session3.(legs{2}).(['peak_' joints{1} '_val'])(1,:)]';
+y_KCF = [Results_BW.JRL.session1.(legs{1}).(['peak_' joints{2} '_val'])(1,:), Results_BW.JRL.session1.(legs{1}).(['peak_' joints{2} '_val'])(1,:), Results_BW.JRL.session2.(legs{1}).(['peak_' joints{2} '_val'])(1,:), Results_BW.JRL.session2.(legs{2}).(['peak_' joints{2} '_val'])(1,:), Results_BW.JRL.session3.(legs{1}).(['peak_' joints{2} '_val'])(1,:), Results_BW.JRL.session3.(legs{2}).(['peak_' joints{2} '_val'])(1,:)]';
+y_glut_min = [Results_BW.JRL.session1.(legs{1}).(['peak_'  '_val'])(1,:), Results_BW.JRL.session1.(legs{2}).(['peak_' joints{1} '_val'])(1,:), Results_BW.JRL.session2.(legs{1}).(['peak_' joints{1} '_val'])(1,:), Results_BW.JRL.session2.(legs{2}).(['peak_' joints{1} '_val'])(1,:), Results_BW.JRL.session3.(legs{1}).(['peak_' joints{1} '_val'])(1,:), Results_BW.JRL.session3.(legs{2}).(['peak_' joints{1} '_val'])(1,:)]';
+
 %             if lin
 %                 [b_HCF,bint_HCF,r_HCF,rint_HCF,stats_HCF] = regress(y_HCF,X); % stats =  R2 statistic, F-statistic and its p-value, estimate of the error variance
 %             end
@@ -1590,17 +1596,24 @@ legs = {'left'; 'right'};
  for i = 1:size(sessions,1)
      for j = 1:size(legs,1)
          for k = 1:size(musc_seg,1)
-             Results_BW.SO.(session{i}).(legs{j}).([musc_seg{k} '_' legs(1)]) = Results_BW.SO.(session{i}).(legs{j}).([musc_seg{k} '1_' legs(1)]) + Results_BW.SO.(session{i}).(legs{j}).([musc_seg{k} '2_' legs(1)]) + Results_BW.SO.(session{i}).(legs{j}).([musc_seg{k} '2_' legs(1)]);
+             Results_BW.SO.(sessions{i}).(legs{j}).([musc_seg{k} '_' legs{j}(1)]) = Results_BW.SO.(sessions{i}).(legs{j}).([musc_seg{k} '1_' legs{j}(1)]) + Results_BW.SO.(sessions{i}).(legs{j}).([musc_seg{k} '2_' legs{j}(1)]) + Results_BW.SO.(sessions{i}).(legs{j}).([musc_seg{k} '3_' legs{j}(1)]);
+%              Results_BW.SO.(sessions{i}).(legs{j}).(['peak_' musc_seg{k} '_' legs{j}(1) '_val']) = Results_BW.SO.(sessions{i}).(legs{j}).(['peak_' musc_seg{k} '1_' legs{j}(1) '_val']) + Results_BW.SO.(sessions{i}).(legs{j}).(['peak_' musc_seg{k} '2_' legs{j}(1) '_val']) + Results_BW.SO.(sessions{i}).(legs{j}).(['peak_' musc_seg{k} '3_' legs{j}(1) '_val']);
+
          end
-         Results_BW.SO.(session{i}).(legs{j}).(['hamstrings_' legs(1)]) = Results_BW.SO.(session{i}).(legs{j}).(['semimem_' legs(1)]) + Results_BW.SO.(session{i}).(legs{j}).(['semiten_' legs(1)]) + Results_BW.SO.(session{i}).(legs{j}).(['bifemlh_' legs(1)]);
-         Results_BW.SO.(session{i}).(legs{j}).(['adductors_' legs(1)]) = Results_BW.SO.(session{i}).(legs{j}).(['add_mag_' legs(1)]) + Results_BW.SO.(session{i}).(legs{j}).(['add_long_' legs(1)]) + Results_BW.SO.(session{i}).(legs{j}).(['add_brev_' legs(1)]) + Results_BW.SO.(session{i}).(legs{j}).(['pect_' legs(1)]) + Results_BW.SO.(session{i}).(legs{j}).(['grac_' legs(1)]);
-         Results_BW.SO.(session{i}).(legs{j}).(['iliopsoas_' legs(1)]) = Results_BW.SO.(session{i}).(legs{j}).(['iliacus_' legs(1)]) + Results_BW.SO.(session{i}).(legs{j}).(['psoas_' legs(1)]);
-         Results_BW.SO.(session{i}).(legs{j}).(['ext_rot_' legs(1)]) = Results_BW.SO.(session{i}).(legs{j}).(['gem_' legs(1)]) + Results_BW.SO.(session{i}).(legs{j}).(['quad_fem_' legs(1)]) + Results_BW.SO.(session{i}).(legs{j}).(['peri_' legs(1)]);
+         Results_BW.SO.(sessions{i}).(legs{j}).(['hamstrings_' legs{j}(1)]) = Results_BW.SO.(sessions{i}).(legs{j}).(['semimem_' legs{j}(1)]) + Results_BW.SO.(sessions{i}).(legs{j}).(['semiten_' legs{j}(1)]) + Results_BW.SO.(sessions{i}).(legs{j}).(['bifemlh_' legs{j}(1)]);
+         Results_BW.SO.(sessions{i}).(legs{j}).(['adductors_' legs{j}(1)]) = Results_BW.SO.(sessions{i}).(legs{j}).(['add_mag_' legs{j}(1)]) + Results_BW.SO.(sessions{i}).(legs{j}).(['add_long_' legs{j}(1)]) + Results_BW.SO.(sessions{i}).(legs{j}).(['add_brev_' legs{j}(1)]) + Results_BW.SO.(sessions{i}).(legs{j}).(['pect_' legs{j}(1)]) + Results_BW.SO.(sessions{i}).(legs{j}).(['grac_' legs{j}(1)]);
+         Results_BW.SO.(sessions{i}).(legs{j}).(['iliopsoas_' legs{j}(1)]) = Results_BW.SO.(sessions{i}).(legs{j}).(['iliacus_' legs{j}(1)]) + Results_BW.SO.(sessions{i}).(legs{j}).(['psoas_' legs{j}(1)]);
+         Results_BW.SO.(sessions{i}).(legs{j}).(['ext_rot_' legs{j}(1)]) = Results_BW.SO.(sessions{i}).(legs{j}).(['gem_' legs{j}(1)]) + Results_BW.SO.(sessions{i}).(legs{j}).(['quad_fem_' legs{j}(1)]) + Results_BW.SO.(sessions{i}).(legs{j}).(['peri_' legs{j}(1)]);
+
+%          Results_BW.SO.(sessions{i}).(legs{j}).(['peak_hamstrings_' legs{j}(1) '_val']) = Results_BW.SO.(sessions{i}).(legs{j}).(['peak_semimem_' legs{j}(1) '_val']) + Results_BW.SO.(sessions{i}).(legs{j}).(['peak_semiten_' legs{j}(1) '_val']) + Results_BW.SO.(sessions{i}).(legs{j}).(['peak_bifemlh_' legs{j}(1) '_val']);
+%          Results_BW.SO.(sessions{i}).(legs{j}).(['peak_adductors_' legs{j}(1) '_val']) = Results_BW.SO.(sessions{i}).(legs{j}).(['peak_add_mag_' legs{j}(1) '_val']) + Results_BW.SO.(sessions{i}).(legs{j}).(['peak_add_long_' legs{j}(1) '_val']) + Results_BW.SO.(sessions{i}).(legs{j}).(['peak_add_brev_' legs{j}(1) '_val']) + Results_BW.SO.(sessions{i}).(legs{j}).(['peak_pect_' legs{j}(1) '_val']) + Results_BW.SO.(sessions{i}).(legs{j}).(['peak_grac_' legs{j}(1) '_val']);
+%          Results_BW.SO.(sessions{i}).(legs{j}).(['peak_iliopsoas_' legs{j}(1) '_val']) = Results_BW.SO.(sessions{i}).(legs{j}).(['peak_iliacus_' legs{j}(1) '_val']) + Results_BW.SO.(sessions{i}).(legs{j}).(['peak_psoas_' legs{j}(1) '_val']);
+%          Results_BW.SO.(sessions{i}).(legs{j}).(['peak_ext_rot_' legs{j}(1) '_val']) = Results_BW.SO.(sessions{i}).(legs{j}).(['peak_gem_' legs{j}(1) '_val']) + Results_BW.SO.(sessions{i}).(legs{j}).(['peak_quad_fem_' legs{j}(1) '_val']) + Results_BW.SO.(sessions{i}).(legs{j}).(['peak_peri_' legs{j}(1) '_val']);
      end
  end
 
 % gluteus maximus
-% gluteus medius posterior and anterior
+% gluteus medius
 % gluteus minimus
 % hamstrings (semimembranosus, semitendinosus, and biceps femoris long head)
 % adductors (adductor magnus, longus, and brevis, pectineus and gracilis)

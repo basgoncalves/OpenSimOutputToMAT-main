@@ -4,7 +4,7 @@ add_repos_to_path
 [Results] = create_data_struct;
 S = get_subjects;
 
-gather_data_in_struct = false;
+gather_data_in_struct = true;
 run_stats = true;
 
 %% organise data in struct
@@ -56,13 +56,13 @@ if run_stats
     Results = calculatePeaks(Results);
     Results = add_participant_mass_to_results_struct(Results);
 
-%     plotMuscleForces(Results,'Normalised',Bonf_corr)
+%     plotMuscleForces(Results,'Normalised',1)
 
-%     plotContactForces(Results, 12)
+    plotContactForces(Results, 1)
 
-    plotIK(Results,'Absolute', 1)
+%     plotIK(Results,'Absolute', 1)
 
-%     plotID(Results, 3)
+%     plotID(Results, 1)
 end
 
 %% -------------------------------------------------------------------------------------------------------------- %

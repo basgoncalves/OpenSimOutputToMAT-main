@@ -1023,3 +1023,146 @@
 [2023-06-12 16:43:42.758] [warning] Couldn't find file 'hat_jaw.vtp'.
 [2023-06-12 16:43:42.758] [warning] Couldn't find file 'hat_skull.vtp'.
 [2023-06-12 16:43:42.759] [warning] Couldn't find file 'hat_ribs.vtp'.
+[2023-06-13 19:35:46.656] [info] Loaded model P01_scaled from file C:\Users\Balu\Nextcloud\Documents\MA\Code\Kira_MSc_data\P01\\pre\model\FINAL_PERSONALISEDTORSIONS_scaled_final.osim
+[2023-06-13 19:35:46.661] [warning] Couldn't find file 'treadmill.vtp'.
+[2023-06-13 19:35:46.662] [warning] Couldn't find file 'sacrum.vtp'.
+[2023-06-13 19:35:46.662] [warning] Couldn't find file 'pelvis.vtp'.
+[2023-06-13 19:35:46.663] [warning] Couldn't find file 'l_pelvis.vtp'.
+[2023-06-13 19:35:46.665] [warning] Couldn't find file 'fibula.vtp'.
+[2023-06-13 19:35:46.668] [warning] Couldn't find file 'fibula_l.vtp'.
+[2023-06-13 19:35:46.669] [warning] Couldn't find file 'hat_spine.vtp'.
+[2023-06-13 19:35:46.670] [warning] Couldn't find file 'hat_jaw.vtp'.
+[2023-06-13 19:35:46.670] [warning] Couldn't find file 'hat_skull.vtp'.
+[2023-06-13 19:35:46.671] [warning] Couldn't find file 'hat_ribs.vtp'.
+[2023-06-13 19:35:47.171] [info] Loaded model P02_scaled from file C:\Users\Balu\Nextcloud\Documents\MA\Code\Kira_MSc_data\P02\\pre\model\FINAL_PERSONALISEDTORSIONS_scaled_final.osim
+[2023-06-13 19:35:47.172] [warning] Couldn't find file 'treadmill.vtp'.
+[2023-06-13 19:35:47.173] [warning] Couldn't find file 'sacrum.vtp'.
+[2023-06-13 19:35:47.173] [warning] Couldn't find file 'pelvis.vtp'.
+[2023-06-13 19:35:47.174] [warning] Couldn't find file 'l_pelvis.vtp'.
+[2023-06-13 19:35:47.175] [warning] Couldn't find file 'fibula.vtp'.
+[2023-06-13 19:35:47.177] [warning] Couldn't find file 'fibula_l.vtp'.
+[2023-06-13 19:35:47.179] [warning] Couldn't find file 'hat_spine.vtp'.
+[2023-06-13 19:35:47.180] [warning] Couldn't find file 'hat_jaw.vtp'.
+[2023-06-13 19:35:47.181] [warning] Couldn't find file 'hat_skull.vtp'.
+[2023-06-13 19:35:47.181] [warning] Couldn't find file 'hat_ribs.vtp'.
+[2023-06-13 19:35:48.828] [info] Loaded model P03_scaled from file C:\Users\Balu\Nextcloud\Documents\MA\Code\Kira_MSc_data\P03\\pre\model\FINAL_PERSONALISEDTORSIONS_scaled_final.osim
+[2023-06-13 19:35:48.830] [warning] Couldn't find file 'treadmill.vtp'.
+[2023-06-13 19:35:48.831] [warning] Couldn't find file 'sacrum.vtp'.
+[2023-06-13 19:35:48.831] [warning] Couldn't find file 'pelvis.vtp'.
+[2023-06-13 19:35:48.832] [warning] Couldn't find file 'l_pelvis.vtp'.
+[2023-06-13 19:35:48.834] [warning] Couldn't find file 'fibula.vtp'.
+[2023-06-13 19:35:48.837] [warning] Couldn't find file 'fibula_l.vtp'.
+[2023-06-13 19:35:48.839] [warning] Couldn't find file 'hat_spine.vtp'.
+[2023-06-13 19:35:48.840] [warning] Couldn't find file 'hat_jaw.vtp'.
+[2023-06-13 19:35:48.840] [warning] Couldn't find file 'hat_skull.vtp'.
+[2023-06-13 19:35:48.841] [warning] Couldn't find file 'hat_ribs.vtp'.
+[2023-06-13 19:35:49.177] [info] Loaded model P04_scaled from file C:\Users\Balu\Nextcloud\Documents\MA\Code\Kira_MSc_data\P04\\pre\model\FINAL_PERSONALISEDTORSIONS_scaled_final.osim
+[2023-06-13 19:35:49.178] [warning] Couldn't find file 'treadmill.vtp'.
+[2023-06-13 19:35:49.179] [warning] Couldn't find file 'sacrum.vtp'.
+[2023-06-13 19:35:49.179] [warning] Couldn't find file 'pelvis.vtp'.
+[2023-06-13 19:35:49.180] [warning] Couldn't find file 'l_pelvis.vtp'.
+[2023-06-13 19:35:49.181] [warning] Couldn't find file 'fibula.vtp'.
+[2023-06-13 19:35:49.183] [warning] Couldn't find file 'fibula_l.vtp'.
+[2023-06-13 19:35:49.185] [warning] Couldn't find file 'hat_spine.vtp'.
+[2023-06-13 19:35:49.185] [warning] Couldn't find file 'hat_jaw.vtp'.
+[2023-06-13 19:35:49.186] [warning] Couldn't find file 'hat_skull.vtp'.
+[2023-06-13 19:35:49.186] [warning] Couldn't find file 'hat_ribs.vtp'.
+[2023-06-13 19:35:49.518] [info] Loaded model P05_scaled from file C:\Users\Balu\Nextcloud\Documents\MA\Code\Kira_MSc_data\P05\\pre\model\FINAL_PERSONALISEDTORSIONS_scaled_final.osim
+[2023-06-13 19:35:49.520] [warning] Couldn't find file 'treadmill.vtp'.
+[2023-06-13 19:35:49.520] [warning] Couldn't find file 'sacrum.vtp'.
+[2023-06-13 19:35:49.521] [warning] Couldn't find file 'pelvis.vtp'.
+[2023-06-13 19:35:49.521] [warning] Couldn't find file 'l_pelvis.vtp'.
+[2023-06-13 19:35:49.522] [warning] Couldn't find file 'fibula.vtp'.
+[2023-06-13 19:35:49.525] [warning] Couldn't find file 'fibula_l.vtp'.
+[2023-06-13 19:35:49.527] [warning] Couldn't find file 'hat_spine.vtp'.
+[2023-06-13 19:35:49.528] [warning] Couldn't find file 'hat_jaw.vtp'.
+[2023-06-13 19:35:49.528] [warning] Couldn't find file 'hat_skull.vtp'.
+[2023-06-13 19:35:49.528] [warning] Couldn't find file 'hat_ribs.vtp'.
+[2023-06-13 19:35:49.883] [info] Loaded model P01_scaled from file C:\Users\Balu\Nextcloud\Documents\MA\Code\Kira_MSc_data\P01\\post\model\FINAL_PERSONALISEDTORSIONS_scaled_final.osim
+[2023-06-13 19:35:49.885] [warning] Couldn't find file 'treadmill.vtp'.
+[2023-06-13 19:35:49.885] [warning] Couldn't find file 'sacrum.vtp'.
+[2023-06-13 19:35:49.885] [warning] Couldn't find file 'pelvis.vtp'.
+[2023-06-13 19:35:49.886] [warning] Couldn't find file 'l_pelvis.vtp'.
+[2023-06-13 19:35:49.887] [warning] Couldn't find file 'fibula.vtp'.
+[2023-06-13 19:35:49.891] [warning] Couldn't find file 'fibula_l.vtp'.
+[2023-06-13 19:35:49.893] [warning] Couldn't find file 'hat_spine.vtp'.
+[2023-06-13 19:35:49.894] [warning] Couldn't find file 'hat_jaw.vtp'.
+[2023-06-13 19:35:49.895] [warning] Couldn't find file 'hat_skull.vtp'.
+[2023-06-13 19:35:49.895] [warning] Couldn't find file 'hat_ribs.vtp'.
+[2023-06-13 19:35:50.174] [info] Loaded model P02_scaled from file C:\Users\Balu\Nextcloud\Documents\MA\Code\Kira_MSc_data\P02\\post\model\FINAL_PERSONALISEDTORSIONS_scaled_final.osim
+[2023-06-13 19:35:50.176] [warning] Couldn't find file 'treadmill.vtp'.
+[2023-06-13 19:35:50.176] [warning] Couldn't find file 'sacrum.vtp'.
+[2023-06-13 19:35:50.177] [warning] Couldn't find file 'pelvis.vtp'.
+[2023-06-13 19:35:50.177] [warning] Couldn't find file 'l_pelvis.vtp'.
+[2023-06-13 19:35:50.180] [warning] Couldn't find file 'fibula.vtp'.
+[2023-06-13 19:35:50.184] [warning] Couldn't find file 'fibula_l.vtp'.
+[2023-06-13 19:35:50.185] [warning] Couldn't find file 'hat_spine.vtp'.
+[2023-06-13 19:35:50.186] [warning] Couldn't find file 'hat_jaw.vtp'.
+[2023-06-13 19:35:50.186] [warning] Couldn't find file 'hat_skull.vtp'.
+[2023-06-13 19:35:50.186] [warning] Couldn't find file 'hat_ribs.vtp'.
+[2023-06-13 19:35:50.478] [info] Loaded model P03_scaled from file C:\Users\Balu\Nextcloud\Documents\MA\Code\Kira_MSc_data\P03\\post\model\FINAL_PERSONALISEDTORSIONS_scaled_final.osim
+[2023-06-13 19:35:50.486] [warning] Couldn't find file 'treadmill.vtp'.
+[2023-06-13 19:35:50.487] [warning] Couldn't find file 'sacrum.vtp'.
+[2023-06-13 19:35:50.487] [warning] Couldn't find file 'pelvis.vtp'.
+[2023-06-13 19:35:50.488] [warning] Couldn't find file 'l_pelvis.vtp'.
+[2023-06-13 19:35:50.489] [warning] Couldn't find file 'fibula.vtp'.
+[2023-06-13 19:35:50.491] [warning] Couldn't find file 'fibula_l.vtp'.
+[2023-06-13 19:35:50.494] [warning] Couldn't find file 'hat_spine.vtp'.
+[2023-06-13 19:35:50.494] [warning] Couldn't find file 'hat_jaw.vtp'.
+[2023-06-13 19:35:50.495] [warning] Couldn't find file 'hat_skull.vtp'.
+[2023-06-13 19:35:50.495] [warning] Couldn't find file 'hat_ribs.vtp'.
+[2023-06-13 19:35:50.839] [info] Loaded model P04_scaled from file C:\Users\Balu\Nextcloud\Documents\MA\Code\Kira_MSc_data\P04\\post\model\FINAL_PERSONALISEDTORSIONS_scaled_final.osim
+[2023-06-13 19:35:50.840] [warning] Couldn't find file 'treadmill.vtp'.
+[2023-06-13 19:35:50.841] [warning] Couldn't find file 'sacrum.vtp'.
+[2023-06-13 19:35:50.843] [warning] Couldn't find file 'pelvis.vtp'.
+[2023-06-13 19:35:50.844] [warning] Couldn't find file 'l_pelvis.vtp'.
+[2023-06-13 19:35:50.846] [warning] Couldn't find file 'fibula.vtp'.
+[2023-06-13 19:35:50.850] [warning] Couldn't find file 'fibula_l.vtp'.
+[2023-06-13 19:35:50.852] [warning] Couldn't find file 'hat_spine.vtp'.
+[2023-06-13 19:35:50.853] [warning] Couldn't find file 'hat_jaw.vtp'.
+[2023-06-13 19:35:50.853] [warning] Couldn't find file 'hat_skull.vtp'.
+[2023-06-13 19:35:50.854] [warning] Couldn't find file 'hat_ribs.vtp'.
+[2023-06-13 19:35:51.167] [info] Loaded model P05_scaled from file C:\Users\Balu\Nextcloud\Documents\MA\Code\Kira_MSc_data\P05\\post\model\FINAL_PERSONALISEDTORSIONS_scaled_final.osim
+[2023-06-13 19:35:51.170] [warning] Couldn't find file 'treadmill.vtp'.
+[2023-06-13 19:35:51.170] [warning] Couldn't find file 'sacrum.vtp'.
+[2023-06-13 19:35:51.171] [warning] Couldn't find file 'pelvis.vtp'.
+[2023-06-13 19:35:51.171] [warning] Couldn't find file 'l_pelvis.vtp'.
+[2023-06-13 19:35:51.173] [warning] Couldn't find file 'fibula.vtp'.
+[2023-06-13 19:35:51.178] [warning] Couldn't find file 'fibula_l.vtp'.
+[2023-06-13 19:35:51.180] [warning] Couldn't find file 'hat_spine.vtp'.
+[2023-06-13 19:35:51.181] [warning] Couldn't find file 'hat_jaw.vtp'.
+[2023-06-13 19:35:51.181] [warning] Couldn't find file 'hat_skull.vtp'.
+[2023-06-13 19:35:51.182] [warning] Couldn't find file 'hat_ribs.vtp'.
+[2023-06-13 19:35:51.449] [info] Loaded model TD04_scaled from file C:\Users\Balu\Nextcloud\Documents\MA\Code\Kira_MSc_data\TD04\\model\FINAL_PERSONALISEDTORSIONS_scaled_final.osim
+[2023-06-13 19:35:51.451] [warning] Couldn't find file 'treadmill.vtp'.
+[2023-06-13 19:35:51.452] [warning] Couldn't find file 'sacrum.vtp'.
+[2023-06-13 19:35:51.452] [warning] Couldn't find file 'pelvis.vtp'.
+[2023-06-13 19:35:51.453] [warning] Couldn't find file 'l_pelvis.vtp'.
+[2023-06-13 19:35:51.454] [warning] Couldn't find file 'fibula.vtp'.
+[2023-06-13 19:35:51.456] [warning] Couldn't find file 'fibula_l.vtp'.
+[2023-06-13 19:35:51.457] [warning] Couldn't find file 'hat_spine.vtp'.
+[2023-06-13 19:35:51.457] [warning] Couldn't find file 'hat_jaw.vtp'.
+[2023-06-13 19:35:51.458] [warning] Couldn't find file 'hat_skull.vtp'.
+[2023-06-13 19:35:51.458] [warning] Couldn't find file 'hat_ribs.vtp'.
+[2023-06-13 19:35:51.830] [info] Loaded model TD06_scaled from file C:\Users\Balu\Nextcloud\Documents\MA\Code\Kira_MSc_data\TD06\\model\FINAL_PERSONALISEDTORSIONS_scaled_final.osim
+[2023-06-13 19:35:51.833] [warning] Couldn't find file 'treadmill.vtp'.
+[2023-06-13 19:35:51.834] [warning] Couldn't find file 'sacrum.vtp'.
+[2023-06-13 19:35:51.835] [warning] Couldn't find file 'pelvis.vtp'.
+[2023-06-13 19:35:51.836] [warning] Couldn't find file 'l_pelvis.vtp'.
+[2023-06-13 19:35:51.838] [warning] Couldn't find file 'fibula.vtp'.
+[2023-06-13 19:35:51.841] [warning] Couldn't find file 'fibula_l.vtp'.
+[2023-06-13 19:35:51.844] [warning] Couldn't find file 'hat_spine.vtp'.
+[2023-06-13 19:35:51.845] [warning] Couldn't find file 'hat_jaw.vtp'.
+[2023-06-13 19:35:51.846] [warning] Couldn't find file 'hat_skull.vtp'.
+[2023-06-13 19:35:51.846] [warning] Couldn't find file 'hat_ribs.vtp'.
+[2023-06-13 19:35:52.397] [info] Loaded model TD07_scaled from file C:\Users\Balu\Nextcloud\Documents\MA\Code\Kira_MSc_data\TD07\\model\FINAL_PERSONALISEDTORSIONS_scaled_final.osim
+[2023-06-13 19:35:52.399] [warning] Couldn't find file 'treadmill.vtp'.
+[2023-06-13 19:35:52.400] [warning] Couldn't find file 'sacrum.vtp'.
+[2023-06-13 19:35:52.401] [warning] Couldn't find file 'pelvis.vtp'.
+[2023-06-13 19:35:52.402] [warning] Couldn't find file 'l_pelvis.vtp'.
+[2023-06-13 19:35:52.404] [warning] Couldn't find file 'fibula.vtp'.
+[2023-06-13 19:35:52.437] [warning] Couldn't find file 'fibula_l.vtp'.
+[2023-06-13 19:35:52.440] [warning] Couldn't find file 'hat_spine.vtp'.
+[2023-06-13 19:35:52.440] [warning] Couldn't find file 'hat_jaw.vtp'.
+[2023-06-13 19:35:52.441] [warning] Couldn't find file 'hat_skull.vtp'.
+[2023-06-13 19:35:52.442] [warning] Couldn't find file 'hat_ribs.vtp'.

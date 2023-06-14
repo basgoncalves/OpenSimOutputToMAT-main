@@ -17,11 +17,11 @@ muscle_groups = {'glut_max'; 'glut_med'; 'glut_min';'adductors'; 'hamstrings'; '
 % data_post = struct;
 % data_TD = struct;
 
-load('C:\Users\Balu\Nextcloud\Documents\MA\Code\OpenSimOutputToMAT-main\Results_BW.mat');
+load([get_main_dir fp 'Results_BW.mat']);
 muscles_r = append(muscle_groups,'_r');
 muscles_l = append(muscle_groups,'_l');
 
-alpha_jcf = alpha;
+alpha_jcf = alpha/3;
 alpha_m = alpha;
 
 %% JCF
