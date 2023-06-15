@@ -63,7 +63,7 @@ if run_stats
 
     plotMuscleForces(Results,'Normalised_BW',1)
 
-    plotContactForces(Results, 1)
+%     plotContactForces(Results, false)
 
 %     plotIK(Results,'Absolute', 1)
 
@@ -776,7 +776,7 @@ muscle_groups = {'glut_max'; 'glut_med'; 'glut_min';'adductors'; 'hamstrings'; '
 % create figure with subplots
 % n_subplots = length(muscle_names_unique);
 n_subplots = length(muscle_groups);
-[ha, ~,FirstCol,LastRow,~] = tight_subplot(n_subplots,0,[0.008 0.01],[0.05 0.02],[0.08 0.01],0.99);
+[ha, ~,FirstCol,LastRow,~] = tight_subplot(n_subplots,0,[0.02 0.01],[0.06 0.02],[0.04 0.01],0.99);
 
 mean_differences = struct;
 % loop through all muscles
@@ -856,11 +856,11 @@ for iMusc = 1:length(muscle_groups)
     close(gcf)
 
     % plot force-time curves and add SPM lines on the plot
-    axes(ha(iMusc)); hold on
+    axes(ha(iMusc)); hold on; grid on;
     p = plotShadedSD(MeanForcesAllSessions,SDForcesAllSessions,line_colors);
 
     % change ylim and yticks
-    %     ylim([0 180])
+    ylim([0 3])
     xlim([0 101])
 
     r = add_spm_to_plot(SPM,140);
@@ -882,9 +882,21 @@ mean_differences.(short_muscle){iComp,3} = SPM.(current_comp).p;
 
     % add ylable to first col
     if any(iMusc == FirstCol)
-        yl = ylabel('muscle forces [N/BW]');
-        yl.Rotation = 0;
-        yl.HorizontalAlignment ="right";
+        yl = ylabel('Muscle forces [N/BW]');
+        yl.Rotation = 90;
+        yl.FontSize = 10;
+        yl.FontName = 'Arial';
+        yl.HorizontalAlignment ="center";
+    end
+
+    % add xlabel to last row
+    if any(iMusc == LastRow)
+        xl = xlabel('Gait cycle [%]');
+        xl.FontSize = 10;
+        xl.FontName = 'Arial';
+%         xl.HorizontalAlignment = 'center';
+%         yl.Rotation = 90;
+%         yl.HorizontalAlignment ="right";
     end
 
     % title
@@ -911,7 +923,7 @@ lg.FontName = 'Arial';
 lg.Location = 'best';
 
 % make figure nice (backgorund color, font size and type, etc...)
-makeMyFigureNice
+% makeMyFigureNice
 
 % save figure
 saveas(gcf, [savedir fp 'muscle_forces_BW' leg '.jpeg'])
@@ -921,24 +933,35 @@ save('differences_loc_m.mat', 'differences_loc')
 
 
 % --------------------------------------------------------------------------------------------------------------- %
-function plotContactForces(Results, Bonf_corr) % plot all muscle forces and run t-test SPM to compare (pre,post, & TD)
+function plotContactForces(Results, components) % plot all muscle forces and run t-test SPM to compare (pre,post, & TD)
 
 legs = {'left','right'};
 line_colors = getColor('parula',3);
 
 % JRF names containing fx,fy,fz,fresultant
 JRL_names = fields(Results.JRL.session1.left);
+
+if components
 JRL_names = [JRL_names(endsWith(JRL_names,{'_fx','_fy','fz','_fresultant'}))]; 
+else
+JRL_names = [JRL_names(endsWith(JRL_names,{'_fresultant'}))]; 
+end
+
 
 % replace "_l" and "_r_" with "_leg_" to plot just the variable for a
 % single leg
 JRL_names = strrep(JRL_names,'_r_','_leg_');
 JRL_names = strrep(JRL_names,'_l_','_leg_');
 JRL_names = unique(JRL_names);
+JRL_names(end+1) = JRL_names(1);
+JRL_names(1) = JRL_names(2);
+JRL_names(2) = JRL_names(3);
+JRL_names(3) = JRL_names(end);
+JRL_names(end) = [];
 
 % create figure with subplots
 n_subplots = length(JRL_names);
-[ha, ~,FirstCol,LastRow,~] = tight_subplot(n_subplots,0,[0.008 0.01],[0.05 0.02],[0.08 0.01],0.99);
+[ha, ~,FirstCol,LastRow,~] = tight_subplot(n_subplots,0,[0.05 0.05],[0.1 0.02],[0.04 0.01],0.99);
 
 % loop through all muscles
 for iJRL = 1:length(JRL_names)
@@ -1013,12 +1036,13 @@ for iJRL = 1:length(JRL_names)
     close(gcf)
 
     % plot force-time curves and add SPM lines on the plot
-    axes(ha(iJRL)); hold on
+    axes(ha(iJRL)); hold on; grid on;
     p = plotShadedSD(MeanForcesAllSessions,SDForcesAllSessions,line_colors);
 
     % change ylim and yticks
-%     ylim([0 6])
-    
+    ylim([0 8.5])
+    xlim([0 100])
+
     r = add_spm_to_plot(SPM,[],8.5);
 
 % short_muscle = current_muscle(1:end-2);
@@ -1038,14 +1062,28 @@ for iJRL = 1:length(JRL_names)
 
     % add ylable to first col
     if any(iJRL == FirstCol)
-        yl = ylabel('Joint contact forces (BW)');
-        yl.Rotation = 0;
-        yl.HorizontalAlignment ="right";
+        yl = ylabel('Resultant joint contact forces [N/BW]');
+        yl.Rotation = 90;
+        yl.FontSize = 10;
+        yl.FontName = 'Arial';
+        yl.HorizontalAlignment ="center";
+    end
+
+    % add xlabel to last row
+    if any(iJRL == LastRow)
+        xl = xlabel('Gait cycle [%]');
+        xl.FontSize = 10;
+        xl.FontName = 'Arial';
+%         xl.HorizontalAlignment = 'center';
+%         yl.Rotation = 90;
+%         yl.HorizontalAlignment ="right";
     end
 
     % title
     t = title(current_JRL_variable_title, 'Interpreter','none');
     t.VerticalAlignment = 'top';
+    t.FontSize = 10;
+    t.FontName = 'Arial';
 end
 
 % add ticks to the plots
@@ -1059,7 +1097,7 @@ lg.FontName = 'Arial';
 lg.Location = 'best';
 
 % make figure nice (backgorund color, font size and type, etc...)
-makeMyFigureNice
+% makeMyFigureNice
 
 % save figure
 saveas(gcf, [savedir fp 'JointReactionLoads.jpeg'])
@@ -1363,6 +1401,7 @@ for iComp = 1:nComp
     % Find the indices where consecutive values change & split the vector into sections
     if isempty(sections_significant_differences)
         disp('no sig dif found')
+            rectangle_plot = plot(NaN, NaN, 's', 'MarkerFaceColor', colors_rect(iComp,:), 'MarkerEdgeColor', 'none');
         continue
     end
 
@@ -1378,6 +1417,7 @@ for iComp = 1:nComp
 
         % Draw the rectangle
         if ~isnan(x_rect)
+                hold on
             r = rectangle('Position', [x_rect, y_rect, width, height], 'FaceColor', colors_rect(iComp,:), 'EdgeColor','none');
         end
 
@@ -1704,13 +1744,13 @@ for iSess = 1:length(S.sessions)
 
             % try to add
             try
-                right_norm_temp.(muscle_names_r{iMusc})(:,iCol) = Results.SO.(session).right.(muscle_names_r{iMusc})(:,iCol) / Results.Mass.(session)(iCol)*9.81  ;
-                left_norm_temp.(muscle_names_l{iMusc})(:,iCol) = Results.SO.(session).left.(muscle_names_l{iMusc})(:,iCol) / Results.Mass.(session)(iCol)*9.81;
+                right_norm_temp.(muscle_names_r{iMusc})(:,iCol) = Results.SO.(session).right.(muscle_names_r{iMusc})(:,iCol) ./ (Results.Mass.(session)(iCol)*9.81)  ;
+                left_norm_temp.(muscle_names_l{iMusc})(:,iCol) = Results.SO.(session).left.(muscle_names_l{iMusc})(:,iCol) ./ (Results.Mass.(session)(iCol)*9.81);
             catch
                 right_norm_temp.(muscle_names_r{iMusc}) = [];
                 left_norm_temp.(muscle_names_l{iMusc}) = [];
-                right_norm_temp.(muscle_names_r{iMusc})(:,iCol) = Results.SO.(session).right.(muscle_names_r{iMusc})(:,iCol) / Results.Mass.(session)(iCol)*9.81;
-                left_norm_temp.(muscle_names_l{iMusc})(:,iCol) = Results.SO.(session).left.(muscle_names_l{iMusc})(:,iCol) / Results.Mass.(session)(iCol)*9.81;
+                right_norm_temp.(muscle_names_r{iMusc})(:,iCol) = Results.SO.(session).right.(muscle_names_r{iMusc})(:,iCol) ./ (Results.Mass.(session)(iCol)*9.81);
+                left_norm_temp.(muscle_names_l{iMusc})(:,iCol) = Results.SO.(session).left.(muscle_names_l{iMusc})(:,iCol) ./ (Results.Mass.(session)(iCol)*9.81);
             end
 
         end
