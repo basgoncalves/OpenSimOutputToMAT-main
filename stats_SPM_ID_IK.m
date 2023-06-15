@@ -61,7 +61,7 @@ if run_stats
 
     Results = calculatePeaks(Results);
 
-%     plotMuscleForces(Results,'Normalised_BW',1)
+    plotMuscleForces(Results,'Normalised_BW',1)
 
     plotContactForces(Results, 1)
 
@@ -874,8 +874,10 @@ for iMusc = 1:length(muscle_groups)
         current_comp = comparisons{iComp};
         mean_differences.(short_muscle){iComp,1} = current_comp;
         mean_differences.(short_muscle){iComp,2} = SPM.(current_comp).MeanDifference;
+mean_differences.(short_muscle){iComp,3} = SPM.(current_comp).p;
                 differences_loc.(short_muscle){iComp,1} = current_comp;
         differences_loc.(short_muscle){iComp,2} = SPM.(current_comp).sig_idx;
+        
     end
 
     % add ylable to first col
@@ -905,6 +907,7 @@ end
 % add legend
 lg = legend({'pre' 'sd' 'post' '' 'td' '' 'pre vs post' 'pre vs TD' 'post vs TD'});
 lg.FontSize = 10;
+lg.FontName = 'Arial';
 lg.Location = 'best';
 
 % make figure nice (backgorund color, font size and type, etc...)
@@ -914,6 +917,7 @@ makeMyFigureNice
 saveas(gcf, [savedir fp 'muscle_forces_BW' leg '.jpeg'])
 save('mean_differences_m.mat', 'mean_differences')
 save('differences_loc_m.mat', 'differences_loc')
+
 
 
 % --------------------------------------------------------------------------------------------------------------- %
@@ -1026,7 +1030,9 @@ for iJRL = 1:length(JRL_names)
         current_comp = comparisons{iComp};
         mean_differences.(JRL_names{iJRL}){iComp,1} = current_comp;
         mean_differences.(JRL_names{iJRL}){iComp,2} = SPM.(current_comp).MeanDifference;
-        differences_loc.(JRL_names{iJRL}){iComp} = SPM.(current_comp).sig_idx;
+        mean_differences.(JRL_names{iJRL}){iComp,3} = SPM.(current_comp).p;
+        differences_loc.(JRL_names{iJRL}){iComp,1} = current_comp;
+        differences_loc.(JRL_names{iJRL}){iComp,2} = SPM.(current_comp).sig_idx;
     end
 
 

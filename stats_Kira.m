@@ -5,7 +5,7 @@ function stats_Kira()
 [Results] = get_data_struct;
 S = get_subjects;
 
-gather_data_in_struct = false;
+gather_data_in_struct = true;
 
 run_stats =                 true;
 plot_JRF_curve_and_peaks =  false;

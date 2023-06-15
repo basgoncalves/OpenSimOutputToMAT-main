@@ -63,7 +63,7 @@ if run_stats
 
     plotMuscleForces(Results,'Normalised_BW',1)
 
-%     plotContactForces(Results, 1)
+    plotContactForces(Results, 1)
 
 %     plotIK(Results,'Absolute', 1)
 
@@ -874,7 +874,10 @@ for iMusc = 1:length(muscle_groups)
         current_comp = comparisons{iComp};
         mean_differences.(short_muscle){iComp,1} = current_comp;
         mean_differences.(short_muscle){iComp,2} = SPM.(current_comp).MeanDifference;
-        differences_loc.(short_muscle){iComp} = SPM.(current_comp).sig_idx;
+mean_differences.(short_muscle){iComp,3} = SPM.(current_comp).p;
+                differences_loc.(short_muscle){iComp,1} = current_comp;
+        differences_loc.(short_muscle){iComp,2} = SPM.(current_comp).sig_idx;
+        
     end
 
     % add ylable to first col
@@ -913,6 +916,7 @@ makeMyFigureNice
 saveas(gcf, [savedir fp 'muscle_forces_BW' leg '.jpeg'])
 save('mean_differences_m.mat', 'mean_differences')
 save('differences_loc_m.mat', 'differences_loc')
+
 
 
 % --------------------------------------------------------------------------------------------------------------- %
@@ -999,7 +1003,7 @@ for iJRL = 1:length(JRL_names)
 
     % run and save SPM plots
     group_types = [1,1,2];
-    [SPM] = ttest_spm(indData,group_types, Bonf_corr);
+    [SPM] = ttest_spm(indData,group_types);
     suptitle([current_JRL_variable_title])
 
     savedir = [get_main_dir() fp 'SPM_results' fp 'JRL'];
