@@ -1,5 +1,5 @@
 % gather participants' characteristics
-clc; clear all; close all
+clc; %clear all; close all
 
 part_char = struct;
 
@@ -30,6 +30,19 @@ part_char.session3.right.NSA = [132.4, 126, 124.6, 124.8];
 part_char.session3.right.AVA = [24.2, 13.3, 17.7, 28.7];
 part_char.session3.right.TT = [13.7, 26.9, 22.2, 4.9];
 part_char.session3.mass = [38.9, 54.8, 29.6, 20.4];
+
+% determine walking velocity
+f = fields(data.IK.FINAL_PERSONALISEDTORSIONS_scaled_final);
+pel_vel = [];
+for i=1:length(f)
+    pel_x = data.IK.FINAL_PERSONALISEDTORSIONS_scaled_final.(f{i}).pelvis_tx;
+    pel_time = data.IK.FINAL_PERSONALISEDTORSIONS_scaled_final.(f{i}).time;
+    pel_dist = pel_x(end)-pel_x(1);
+    pel_t = pel_time(end) - pel_time(1);
+    pel_vel(i) = pel_dist/pel_t;
+end
+
+
 
 % save data
 save C:\Users\Balu\Nextcloud\Documents\MA\Code\Kira_MSc_data\participants_characteristics.mat part_char -v7.3
