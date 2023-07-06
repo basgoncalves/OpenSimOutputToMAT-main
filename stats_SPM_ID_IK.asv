@@ -61,7 +61,7 @@ if run_stats
 
     Results = calculatePeaks(Results);
 
-%     plotMuscleForces(Results,'Normalised_BW',1)
+    plotMuscleForces(Results,'Normalised_BW',1)
 
 %     plotContactForces(Results, false)
 
@@ -1441,7 +1441,7 @@ x_new = [x_new, x(end)];
 
 
 % --------------------------------------------------------------------------------------------------------------- %
-function plotIK(Results,Type) % plot kinematics and run t-test SPM to compare (pre,post, & TD)
+function plotIK(Results,Type, Bonf_corr) % plot kinematics and run t-test SPM to compare (pre,post, & TD)
 if nargin < 2
     Type ='Absolute';
 end
@@ -1539,21 +1539,6 @@ for iAng= 1:length(angle_names_unique)
     
     r = add_spm_to_plot(SPM,140);
 
-    short_angle = current_angle(1:end-2);
-    mean_differences.(short_angle) = {};
-    differences_loc.(short_angle) = {};
-    comparisons = fields(SPM);
-    nComparisons = length(comparisons);
-    for iComp = 1:nComparisons
-        current_comp = comparisons{iComp};
-        mean_differences.(short_angle){iComp,1} = current_comp;
-        mean_differences.(short_angle){iComp,2} = SPM.(current_comp).MeanDifference;
-mean_differences.(short_angle){iComp,3} = SPM.(current_comp).p;
-                differences_loc.(short_angle){iComp,1} = current_comp;
-        differences_loc.(short_angle){iComp,2} = SPM.(current_comp).sig_idx;
-        
-    end
-
     % add ylable to first col
     if any(iAng == FirstCol)
         yl = ylabel('Angle [°]');
@@ -1586,8 +1571,6 @@ makeMyFigureNice
 
 % save figure
 saveas(gcf, [savedir fp 'kinematics' leg '.jpeg'])
-save('mean_differences_IK.mat', 'mean_differences')
-save('differences_loc_IK.mat', 'differences_loc')
 
 
 % --------------------------------------------------------------------------------------------------------------- %

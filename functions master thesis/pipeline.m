@@ -1,6 +1,6 @@
 clear all; %close all;
 clc;
-% addpath(genpath('C:\Users\Balu\Nextcloud\Documents\MA\Code\MSKmodelling')); 
+addpath(genpath('C:\Users\Balu\Nextcloud\Documents\MA\Code\MSKmodelling')); 
 
 %% individual data to be changed before every run
 subj = 'P01';
