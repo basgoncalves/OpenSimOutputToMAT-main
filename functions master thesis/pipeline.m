@@ -15,11 +15,11 @@ IK_max_error = 0;
 check_muscle_moment_arm = 0;
 plot_IK = 0;
 plot_ID = 0;
-plot_SO = 1; activation = 0; forces = 1;
+plot_SO = 0; activation = 0; forces = 1;
 plot_JRL = 0;
 plot_std = 0;
 plot_all_trials = 1; % plot all trials individually (1) or average with standard deviation (0)
-save_struct = 0;
+save_struct = 1;
 
 %%
 switch surg
@@ -377,25 +377,27 @@ end
 
 %% save data to struct
 if save_struct == 1
-% paths = {'C:\Users\Balu\Nextcloud\Documents\MA\Code\Kira_MSc_data\P01\pre\output automization';
+paths = {
+    %'C:\Users\Balu\Nextcloud\Documents\MA\Code\Kira_MSc_data\P01\pre\output automization';
 %           'C:\Users\Balu\Nextcloud\Documents\MA\Code\Kira_MSc_data\P01\post\output automization';
 %           'C:\Users\Balu\Nextcloud\Documents\MA\Code\Kira_MSc_data\P02\pre\output automization';
 %           'C:\Users\Balu\Nextcloud\Documents\MA\Code\Kira_MSc_data\P02\post\output automization';
 %           'C:\Users\Balu\Nextcloud\Documents\MA\Code\Kira_MSc_data\P03\pre\output automization';
 %           'C:\Users\Balu\Nextcloud\Documents\MA\Code\Kira_MSc_data\P03\post\output automization';
-%           'C:\Users\Balu\Nextcloud\Documents\MA\Code\Kira_MSc_data\P04\pre\output automization';
+          'C:\Users\Balu\Nextcloud\Documents\MA\Code\Kira_MSc_data\P04\pre\output automization';
 %           'C:\Users\Balu\Nextcloud\Documents\MA\Code\Kira_MSc_data\P04\post\output automization';
 %           'C:\Users\Balu\Nextcloud\Documents\MA\Code\Kira_MSc_data\P05\pre\output automization';
 %           'C:\Users\Balu\Nextcloud\Documents\MA\Code\Kira_MSc_data\P05\post\output automization';
 %           'C:\Users\Balu\Nextcloud\Documents\MA\Code\Kira_MSc_data\TD01\output automization';
 %           'C:\Users\Balu\Nextcloud\Documents\MA\Code\Kira_MSc_data\TD04\output automization';
 %           'C:\Users\Balu\Nextcloud\Documents\MA\Code\Kira_MSc_data\TD06\output automization';
-%           'C:\Users\Balu\Nextcloud\Documents\MA\Code\Kira_MSc_data\TD07\output automization';};
-% 
-% for i = 1:length(paths)
-%     outputPath = paths{i};
-%     saveDataToStruct(outputPath)
-% end
+%           'C:\Users\Balu\Nextcloud\Documents\MA\Code\Kira_MSc_data\TD07\output automization';
+};
+
+for i = 1:length(paths)
+    outputPath = paths{i};
+    saveDataToStruct_bodyKin(outputPath)
+end
 
 
 % saveDataToStruct('C:\Users\Balu\Nextcloud\Documents\MA\Code\Kira_MSc_data\TD01\output with trunc muscles')
